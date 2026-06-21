@@ -1,0 +1,34 @@
+# Manufacturing Copilot — Python Dependencies
+# Install: pip install -r requirements.txt
+# Python: 3.11+
+
+# --- Web Framework ---
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+python-multipart==0.0.9
+jinja2==3.1.4
+
+# --- Configuration ---
+pydantic-settings==2.2.1
+
+# --- HTTP Client (Ollama / Qwen3 calls) ---
+httpx==0.27.0
+
+# --- SQL Server (saapi / MPAS_DB) ---
+pyodbc==5.1.0
+
+# --- OPC UA (Takebishi DXP — PNRMPAS_DXPOPCUA_LIVE.dxp) ---
+asyncua==1.1.0
+
+# --- Vector DB / RAG (ChromaDB) ---
+chromadb==0.5.0
+sentence-transformers==2.7.0
+
+# --- Document extraction (for Knowledge Base indexing) ---
+pdfplumber==0.11.0          # PDF
+python-docx==1.1.0          # DOCX
+python-pptx==0.6.23         # PPTX
+openpyxl==3.1.2             # XLSX
+
+# --- Utilities ---
+python-dotenv==1.0.1

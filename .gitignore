@@ -1,0 +1,31 @@
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment Variables & Secrets
+.env
+
+# Database & Storage
+vector_db/
+logs/
+*.log
+
+# IDE & Editor Configs
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Antigravity & AI caches
+.continue/
+sentence_transformers_cache/
