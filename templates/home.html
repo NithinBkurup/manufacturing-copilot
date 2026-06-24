@@ -4,7 +4,181 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Siuuu</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<script>
+function applyTheme() {
+  const theme = localStorage.getItem('mfg_theme') || 'kinetic-monolith';
+  const font = localStorage.getItem('mfg_font') || 'Space Grotesk';
+  const fontSize = localStorage.getItem('mfg_font_size') || 'medium';
+
+  // Apply theme class to documentElement
+  document.documentElement.className = '';
+  document.documentElement.classList.add('theme-' + theme);
+
+  const themes = {
+    'kinetic-monolith': {
+      '--bg': '#060705',
+      '--panel': '#0E100B',
+      '--card': '#151910',
+      '--card-b': '#1A2014',
+      '--border': '#1D2316',
+      '--border-b': '#2E3723',
+      '--lime': '#B8EF43',
+      '--lime-dim': '#979C06',
+      '--lime-glow': 'rgba(184,239,67,0.12)',
+      '--lime-soft': 'rgba(184,239,67,0.06)'
+    },
+    'obsidian-pulse': {
+      '--bg': '#050505',
+      '--panel': '#0c0c0c',
+      '--card': '#121212',
+      '--card-b': '#181818',
+      '--border': '#1a1a1a',
+      '--border-b': '#262626',
+      '--lime': '#10b981',
+      '--lime-dim': '#047857',
+      '--lime-glow': 'rgba(16,185,129,0.12)',
+      '--lime-soft': 'rgba(16,185,129,0.06)'
+    },
+    'brutalist-signal': {
+      '--bg': '#1e201e',
+      '--panel': '#2a2c2a',
+      '--card': '#323532',
+      '--card-b': '#3a3e3a',
+      '--border': '#3e423e',
+      '--border-b': '#525852',
+      '--lime': '#5af0c4',
+      '--lime-dim': '#3ebd9b',
+      '--lime-glow': 'rgba(90,240,196,0.12)',
+      '--lime-soft': 'rgba(90,240,196,0.06)'
+    },
+    'terminal-monolith': {
+      '--bg': '#000000',
+      '--panel': '#080808',
+      '--card': '#0c0c0c',
+      '--card-b': '#121212',
+      '--border': '#184a18',
+      '--border-b': '#00ff00',
+      '--lime': '#00ff00',
+      '--lime-dim': '#00cc00',
+      '--lime-glow': 'rgba(0,255,0,0.15)',
+      '--lime-soft': 'rgba(0,255,0,0.05)'
+    },
+    'fractured-slab': {
+      '--bg': '#0a0b09',
+      '--panel': '#11130f',
+      '--card': '#181b15',
+      '--card-b': '#1f231b',
+      '--border': '#262c20',
+      '--border-b': '#3c4533',
+      '--lime': '#a3e635',
+      '--lime-dim': '#65a30d',
+      '--lime-glow': 'rgba(163,230,53,0.15)',
+      '--lime-soft': 'rgba(163,230,53,0.07)'
+    },
+    'industrial-forge': {
+      '--bg': '#0f1012',
+      '--panel': '#16181b',
+      '--card': '#1d2024',
+      '--card-b': '#24282e',
+      '--border': '#2c3138',
+      '--border-b': '#3c434d',
+      '--lime': '#f59e0b',
+      '--lime-dim': '#d97706',
+      '--lime-glow': 'rgba(245,158,11,0.12)',
+      '--lime-soft': 'rgba(245,158,11,0.06)'
+    },
+    'quiet-monolith': {
+      '--bg': '#0e100f',
+      '--panel': '#151817',
+      '--card': '#1c201e',
+      '--card-b': '#232826',
+      '--border': '#2b302e',
+      '--border-b': '#3a413e',
+      '--lime': '#8ea885',
+      '--lime-dim': '#6a8262',
+      '--lime-glow': 'rgba(142,168,133,0.10)',
+      '--lime-soft': 'rgba(142,168,133,0.05)'
+    },
+    'vertical-momentum': {
+      '--bg': '#060705',
+      '--panel': '#0d0f0a',
+      '--card': '#141710',
+      '--card-b': '#1b1e15',
+      '--border': '#22261b',
+      '--border-b': '#333928',
+      '--lime': '#c2f04d',
+      '--lime-dim': '#9ec23e',
+      '--lime-glow': 'rgba(194,240,77,0.12)',
+      '--lime-soft': 'rgba(194,240,77,0.06)'
+    },
+    'glass-monolith': {
+      '--bg': '#050604',
+      '--panel': 'rgba(14, 16, 11, 0.65)',
+      '--card': 'rgba(21, 25, 16, 0.5)',
+      '--card-b': 'rgba(26, 32, 20, 0.6)',
+      '--border': 'rgba(46, 55, 35, 0.3)',
+      '--border-b': 'rgba(90, 240, 196, 0.15)',
+      '--lime': '#b8ef43',
+      '--lime-dim': '#979c06',
+      '--lime-glow': 'rgba(184,239,67,0.2)',
+      '--lime-soft': 'rgba(184,239,67,0.08)'
+    },
+    'monolith-grid': {
+      '--bg': '#080907',
+      '--panel': '#0f100d',
+      '--card': '#161814',
+      '--card-b': '#1d201b',
+      '--border': '#242820',
+      '--border-b': '#353a2f',
+      '--lime': '#8be024',
+      '--lime-dim': '#71b51e',
+      '--lime-glow': 'rgba(139,224,36,0.12)',
+      '--lime-soft': 'rgba(139,224,36,0.06)'
+    }
+  };
+
+  const selectedTheme = themes[theme] || themes['kinetic-monolith'];
+  for (const [key, val] of Object.entries(selectedTheme)) {
+    document.documentElement.style.setProperty(key, val);
+  }
+
+  // Handle glass monolith backdrop filter styles
+  const isGlass = (theme === 'glass-monolith');
+  if (isGlass) {
+    document.documentElement.style.setProperty('--glass-blur', 'blur(12px)');
+  } else {
+    document.documentElement.style.setProperty('--glass-blur', 'none');
+  }
+
+  // Apply fonts
+  const fontFamilies = {
+    'Space Grotesk': "'Space Grotesk', sans-serif",
+    'Manrope': "'Manrope', sans-serif",
+    'JetBrains Mono': "'JetBrains Mono', monospace",
+    'Inter': "'Inter', sans-serif",
+    'Outfit': "'Outfit', sans-serif"
+  };
+  const fontVal = fontFamilies[font] || fontFamilies['Space Grotesk'];
+  document.documentElement.style.setProperty('--sans', fontVal);
+  if (font === 'JetBrains Mono') {
+    document.documentElement.style.setProperty('--body', fontVal);
+  } else {
+    document.documentElement.style.setProperty('--body', "'Manrope', sans-serif");
+  }
+
+  // Apply font sizes
+  const fontSizes = {
+    'small': '12px',
+    'medium': '14px',
+    'large': '16px',
+    'xlarge': '18px'
+  };
+  const sizeVal = fontSizes[fontSize] || fontSizes['medium'];
+  document.documentElement.style.fontSize = sizeVal;
+}
+applyTheme();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
 :root {
   --bg:            #060705; /* Obsidian dark background */

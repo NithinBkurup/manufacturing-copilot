@@ -4,8 +4,182 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Manufacturing Copilot — Configuration</title>
+<script>
+function applyTheme() {
+  const theme = localStorage.getItem('mfg_theme') || 'kinetic-monolith';
+  const font = localStorage.getItem('mfg_font') || 'Space Grotesk';
+  const fontSize = localStorage.getItem('mfg_font_size') || 'medium';
+
+  // Apply theme class to documentElement
+  document.documentElement.className = '';
+  document.documentElement.classList.add('theme-' + theme);
+
+  const themes = {
+    'kinetic-monolith': {
+      '--bg': '#060705',
+      '--panel': '#0E100B',
+      '--card': '#151910',
+      '--card-b': '#1A2014',
+      '--border': '#1D2316',
+      '--border-b': '#2E3723',
+      '--lime': '#B8EF43',
+      '--lime-dim': '#979C06',
+      '--lime-glow': 'rgba(184,239,67,0.12)',
+      '--lime-soft': 'rgba(184,239,67,0.06)'
+    },
+    'obsidian-pulse': {
+      '--bg': '#050505',
+      '--panel': '#0c0c0c',
+      '--card': '#121212',
+      '--card-b': '#181818',
+      '--border': '#1a1a1a',
+      '--border-b': '#262626',
+      '--lime': '#10b981',
+      '--lime-dim': '#047857',
+      '--lime-glow': 'rgba(16,185,129,0.12)',
+      '--lime-soft': 'rgba(16,185,129,0.06)'
+    },
+    'brutalist-signal': {
+      '--bg': '#1e201e',
+      '--panel': '#2a2c2a',
+      '--card': '#323532',
+      '--card-b': '#3a3e3a',
+      '--border': '#3e423e',
+      '--border-b': '#525852',
+      '--lime': '#5af0c4',
+      '--lime-dim': '#3ebd9b',
+      '--lime-glow': 'rgba(90,240,196,0.12)',
+      '--lime-soft': 'rgba(90,240,196,0.06)'
+    },
+    'terminal-monolith': {
+      '--bg': '#000000',
+      '--panel': '#080808',
+      '--card': '#0c0c0c',
+      '--card-b': '#121212',
+      '--border': '#184a18',
+      '--border-b': '#00ff00',
+      '--lime': '#00ff00',
+      '--lime-dim': '#00cc00',
+      '--lime-glow': 'rgba(0,255,0,0.15)',
+      '--lime-soft': 'rgba(0,255,0,0.05)'
+    },
+    'fractured-slab': {
+      '--bg': '#0a0b09',
+      '--panel': '#11130f',
+      '--card': '#181b15',
+      '--card-b': '#1f231b',
+      '--border': '#262c20',
+      '--border-b': '#3c4533',
+      '--lime': '#a3e635',
+      '--lime-dim': '#65a30d',
+      '--lime-glow': 'rgba(163,230,53,0.15)',
+      '--lime-soft': 'rgba(163,230,53,0.07)'
+    },
+    'industrial-forge': {
+      '--bg': '#0f1012',
+      '--panel': '#16181b',
+      '--card': '#1d2024',
+      '--card-b': '#24282e',
+      '--border': '#2c3138',
+      '--border-b': '#3c434d',
+      '--lime': '#f59e0b',
+      '--lime-dim': '#d97706',
+      '--lime-glow': 'rgba(245,158,11,0.12)',
+      '--lime-soft': 'rgba(245,158,11,0.06)'
+    },
+    'quiet-monolith': {
+      '--bg': '#0e100f',
+      '--panel': '#151817',
+      '--card': '#1c201e',
+      '--card-b': '#232826',
+      '--border': '#2b302e',
+      '--border-b': '#3a413e',
+      '--lime': '#8ea885',
+      '--lime-dim': '#6a8262',
+      '--lime-glow': 'rgba(142,168,133,0.10)',
+      '--lime-soft': 'rgba(142,168,133,0.05)'
+    },
+    'vertical-momentum': {
+      '--bg': '#060705',
+      '--panel': '#0d0f0a',
+      '--card': '#141710',
+      '--card-b': '#1b1e15',
+      '--border': '#22261b',
+      '--border-b': '#333928',
+      '--lime': '#c2f04d',
+      '--lime-dim': '#9ec23e',
+      '--lime-glow': 'rgba(194,240,77,0.12)',
+      '--lime-soft': 'rgba(194,240,77,0.06)'
+    },
+    'glass-monolith': {
+      '--bg': '#050604',
+      '--panel': 'rgba(14, 16, 11, 0.65)',
+      '--card': 'rgba(21, 25, 16, 0.5)',
+      '--card-b': 'rgba(26, 32, 20, 0.6)',
+      '--border': 'rgba(46, 55, 35, 0.3)',
+      '--border-b': 'rgba(90, 240, 196, 0.15)',
+      '--lime': '#b8ef43',
+      '--lime-dim': '#979c06',
+      '--lime-glow': 'rgba(184,239,67,0.2)',
+      '--lime-soft': 'rgba(184,239,67,0.08)'
+    },
+    'monolith-grid': {
+      '--bg': '#080907',
+      '--panel': '#0f100d',
+      '--card': '#161814',
+      '--card-b': '#1d201b',
+      '--border': '#242820',
+      '--border-b': '#353a2f',
+      '--lime': '#8be024',
+      '--lime-dim': '#71b51e',
+      '--lime-glow': 'rgba(139,224,36,0.12)',
+      '--lime-soft': 'rgba(139,224,36,0.06)'
+    }
+  };
+
+  const selectedTheme = themes[theme] || themes['kinetic-monolith'];
+  for (const [key, val] of Object.entries(selectedTheme)) {
+    document.documentElement.style.setProperty(key, val);
+  }
+
+  // Handle glass monolith backdrop filter styles
+  const isGlass = (theme === 'glass-monolith');
+  if (isGlass) {
+    document.documentElement.style.setProperty('--glass-blur', 'blur(12px)');
+  } else {
+    document.documentElement.style.setProperty('--glass-blur', 'none');
+  }
+
+  // Apply fonts
+  const fontFamilies = {
+    'Space Grotesk': "'Space Grotesk', sans-serif",
+    'Manrope': "'Manrope', sans-serif",
+    'JetBrains Mono': "'JetBrains Mono', monospace",
+    'Inter': "'Inter', sans-serif",
+    'Outfit': "'Outfit', sans-serif"
+  };
+  const fontVal = fontFamilies[font] || fontFamilies['Space Grotesk'];
+  document.documentElement.style.setProperty('--sans', fontVal);
+  if (font === 'JetBrains Mono') {
+    document.documentElement.style.setProperty('--body', fontVal);
+  } else {
+    document.documentElement.style.setProperty('--body', "'Manrope', sans-serif");
+  }
+
+  // Apply font sizes
+  const fontSizes = {
+    'small': '12px',
+    'medium': '14px',
+    'large': '16px',
+    'xlarge': '18px'
+  };
+  const sizeVal = fontSizes[fontSize] || fontSizes['medium'];
+  document.documentElement.style.fontSize = sizeVal;
+}
+applyTheme();
+</script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap');
 
 :root {
   --bg:            #060705; /* Obsidian dark background */
@@ -448,6 +622,10 @@ html, body { height: 100%; overflow: auto; background: var(--bg); color: var(--t
       <div class="nav-item" data-section="procs" onclick="switchSection('procs', this)">
         <span class="nav-icon">⚙️</span> Stored Procedures
         <span class="nav-dot" id="dot-procs"></span>
+      </div>
+      <div class="nav-item" data-section="theme" onclick="switchSection('theme', this)">
+        <span class="nav-icon">🎨</span> Theme & Display
+        <span class="nav-dot" id="dot-theme"></span>
       </div>
       <div class="nav-item" data-section="general" onclick="switchSection('general', this)">
         <span class="nav-icon">🏢</span> Client Profile
@@ -972,6 +1150,113 @@ html, body { height: 100%; overflow: auto; background: var(--bg); color: var(--t
           <button class="btn btn-ghost" onclick="loadProcedures()">↻ Reload</button>
         </div>
 
+      </div>
+    </div>
+
+    <!-- ─── SECTION: THEME ─── -->
+    <div id="section-theme" class="section">
+      <div class="content-header">
+        <div>
+          <div class="content-title">Theme & Display Settings</div>
+          <div class="content-sub">Choose visual styles, typography, and layout options for your experience</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+        </div>
+      </div>
+      <div class="content-body">
+        <div class="field-group">
+          <div class="field-group-title">Choose Visual Theme</div>
+          <div class="model-grid" id="theme-grid">
+            <div class="model-card" data-theme="kinetic-monolith" onclick="selectTheme('kinetic-monolith')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">⬡ Kinetic Monolith</div>
+              <div class="model-card-meta">Dark charcoal/black base, single neon-green accent line, slab typography, motion implied through diagonal cuts.</div>
+            </div>
+            <div class="model-card" data-theme="obsidian-pulse" onclick="selectTheme('obsidian-pulse')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">🟢 Obsidian Pulse</div>
+              <div class="model-card-meta">Near-black background, green accent reduced to a pulsing single element, more minimal.</div>
+            </div>
+            <div class="model-card" data-theme="brutalist-signal" onclick="selectTheme('brutalist-signal')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">🧱 Brutalist Signal</div>
+              <div class="model-card-meta">Raw concrete-gray textures instead of pure black, green used only for data/alerts, intentionally unfinished grid.</div>
+            </div>
+            <div class="model-card" data-theme="terminal-monolith" onclick="selectTheme('terminal-monolith')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">📟 Terminal Monolith</div>
+              <div class="model-card-meta">Black background, monospace type, green-on-black evokes old CRT/terminal.</div>
+            </div>
+            <div class="model-card" data-theme="fractured-slab" onclick="selectTheme('fractured-slab')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">⚡ Fractured Slab</div>
+              <div class="model-card-meta">Monolith shape literally broken into shards, green light leaking from the cracks.</div>
+            </div>
+            <div class="model-card" data-theme="industrial-forge" onclick="selectTheme('industrial-forge')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">🔥 Industrial Forge</div>
+              <div class="model-card-meta">Dark metal textures, green accent swapped for amber/green dual accent to suggest heat/energy.</div>
+            </div>
+            <div class="model-card" data-theme="quiet-monolith" onclick="selectTheme('quiet-monolith')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">🍃 Quiet Monolith</div>
+              <div class="model-card-meta">Dark palette but accent color desaturated to a muted sage instead of saturated green — calmer, less hacker aesthetic.</div>
+            </div>
+            <div class="model-card" data-theme="vertical-momentum" onclick="selectTheme('vertical-momentum')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">↕ Vertical Momentum</div>
+              <div class="model-card-meta">Monolith theme leaned into strong vertical lines to literalize "kinetic."</div>
+            </div>
+            <div class="model-card" data-theme="glass-monolith" onclick="selectTheme('glass-monolith')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">❄ Glass Monolith</div>
+              <div class="model-card-meta">Dark theme but with translucent/frosted panels over black, green as a glow behind glass.</div>
+            </div>
+            <div class="model-card" data-theme="monolith-grid" onclick="selectTheme('monolith-grid')">
+              <div class="model-card-badge active" style="display:none;">ACTIVE</div>
+              <div class="model-card-name">🕸 Monolith Grid</div>
+              <div class="model-card-meta">Strict modular grid system, green accent confined to grid intersections/nodes rather than continuous lines.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <div class="field-group-title">Typography & Scale</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Interface Font</label>
+              <select id="pref-font" onchange="applyUserPreferences()">
+                <option value="Space Grotesk">Space Grotesk (Slab/Grotesque)</option>
+                <option value="Manrope">Manrope (Clean Geometric Sans)</option>
+                <option value="JetBrains Mono">JetBrains Mono (Technical Monospace)</option>
+                <option value="Inter">Inter (Premium Interface Sans)</option>
+                <option value="Outfit">Outfit (Modern Clean Sans)</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Font Size Scale</label>
+              <select id="pref-font-size" onchange="applyUserPreferences()">
+                <option value="small">Small (12px)</option>
+                <option value="medium">Medium (14px)</option>
+                <option value="large">Large (16px)</option>
+                <option value="xlarge">Extra Large (18px)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="savePersonalization()">Save Personalization</button>
+        </div>
       </div>
     </div>
 
@@ -1717,6 +2002,59 @@ async function saveProcedures() {
   } catch(e) { showAlert('Save failed: ' + e.message); }
 }
 
+let chosenTheme = localStorage.getItem('mfg_theme') || 'kinetic-monolith';
+
+function selectTheme(themeName) {
+  chosenTheme = themeName;
+  const cards = document.querySelectorAll('#theme-grid .model-card');
+  cards.forEach(card => {
+    const isSelected = (card.getAttribute('data-theme') === themeName);
+    if (isSelected) {
+      card.classList.add('selected');
+      const badge = card.querySelector('.model-card-badge');
+      if (badge) badge.style.display = 'block';
+    } else {
+      card.classList.remove('selected');
+      const badge = card.querySelector('.model-card-badge');
+      if (badge) badge.style.display = 'none';
+    }
+  });
+  
+  // Real-time preview
+  const font = document.getElementById('pref-font').value;
+  const fontSize = document.getElementById('pref-font-size').value;
+  localStorage.setItem('mfg_theme', themeName);
+  applyTheme();
+}
+
+function applyUserPreferences() {
+  const font = document.getElementById('pref-font').value;
+  const fontSize = document.getElementById('pref-font-size').value;
+  localStorage.setItem('mfg_font', font);
+  localStorage.setItem('mfg_font_size', fontSize);
+  applyTheme();
+}
+
+function savePersonalization() {
+  const font = document.getElementById('pref-font').value;
+  const fontSize = document.getElementById('pref-font-size').value;
+  localStorage.setItem('mfg_theme', chosenTheme);
+  localStorage.setItem('mfg_font', font);
+  localStorage.setItem('mfg_font_size', fontSize);
+  applyTheme();
+  showAlert('Theme and display preferences saved successfully.');
+}
+
+function initThemeSettings() {
+  const font = localStorage.getItem('mfg_font') || 'Space Grotesk';
+  const fontSize = localStorage.getItem('mfg_font_size') || 'medium';
+  
+  document.getElementById('pref-font').value = font;
+  document.getElementById('pref-font-size').value = fontSize;
+  
+  selectTheme(chosenTheme);
+}
+
 // ─── INIT ───
 async function init() {
   await fetchDBProcedures();
@@ -1742,6 +2080,7 @@ async function init() {
   initUserProfile();
   initClientProfileFields();
   updateClientHeaderBranding();
+  initThemeSettings();
 }
 
 // User Profile Logic
