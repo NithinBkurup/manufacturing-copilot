@@ -5,44 +5,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Manufacturing Copilot — Configuration</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 
 :root {
-  --bg:        #0d0f0a;
-  --panel:     #13160f;
-  --card:      #191d13;
-  --card-b:    #1f2418;
-  --border:    #252b1c;
-  --border-b:  #323d25;
-  --lime:      #b8ef43;
-  --lime-dim:  #8ab832;
-  --lime-glow: rgba(184,239,67,0.10);
-  --lime-soft: rgba(184,239,67,0.06);
-  --cyan:      #5af0c4;
-  --red:       #f05a5a;
-  --amber:     #f0b84a;
-  --muted:     #4a5538;
-  --text:      #c8d4b0;
-  --text-b:    #e8f0d0;
-  --mono:      'JetBrains Mono', monospace;
-  --sans:      'Space Grotesk', sans-serif;
+  --bg:            #060705; /* Obsidian dark background */
+  --panel:         #0E100B; /* Lighter panel background */
+  --card:          #151910; /* Tech card background */
+  --card-b:        #1A2014; /* Inner card background */
+  --bg-hover:      #22291A; /* Hover background */
+  --border:        #1D2316; /* Core border */
+  --border-b:      #2E3723; /* Highlight border */
+  --lime:          #B8EF43; /* Sharp lime green */
+  --lime-dim:      #979C06; /* Secondary accent */
+  --lime-glow:     rgba(184,239,67,0.12); /* Lime green glow */
+  --lime-soft:     rgba(184,239,67,0.06); /* Lime green soft bg */
+  --cyan:          #5af0c4; /* Accent cyan */
+  --cyan-dim:      #3ebd9b;
+  --cyan-glow:     rgba(90,240,196,0.10);
+  --red:           #FF5555; /* Alert red */
+  --amber:         #B9A702; /* Warning olive-yellow */
+  --muted:         #586548; /* Muted text */
+  --text:          #D8DEC9; /* Warm green-grey text */
+  --text-b:        #E2E8D4; /* Light text */
+  --mono:          'JetBrains Mono', monospace;
+  --sans:          'Space Grotesk', sans-serif;
+  --body:          'Manrope', sans-serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; }
+html, body { height: 100%; overflow: auto; background: var(--bg); color: var(--text); font-family: var(--body); font-size: 14px; }
 
 /* ─── SHELL ─── */
-.shell { display: flex; height: 100vh; }
+.shell { display: flex; min-height: 100vh; min-width: 1200px; min-height: 650px; }
 
 /* ─── SIDEBAR ─── */
 .sidebar {
-  width: 220px; background: var(--panel); border-right: 1px solid var(--border);
+  width: 260px; background: var(--panel); border-right: 1px solid var(--border);
   display: flex; flex-direction: column; flex-shrink: 0;
 }
 .sidebar-logo {
-  padding: 18px 16px 14px; border-bottom: 1px solid var(--border);
   font-size: 11px; font-weight: 600; letter-spacing: 0.12em; color: var(--lime);
-  text-transform: uppercase; font-family: var(--mono);
+  text-transform: uppercase; font-family: var(--sans);
 }
 .sidebar-logo span { display: block; font-size: 9px; color: var(--muted); font-weight: 400; margin-top: 2px; letter-spacing: 0.08em; }
 .nav { flex: 1; padding: 10px 0; display: flex; flex-direction: column; gap: 1px; }
@@ -51,6 +54,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   padding: 9px 16px; cursor: pointer; transition: all 0.15s;
   font-size: 12px; font-weight: 500; color: var(--muted);
   border-left: 2px solid transparent; letter-spacing: 0.02em;
+  font-family: var(--sans);
 }
 .nav-item:hover { color: var(--text); background: var(--lime-soft); }
 .nav-item.active { color: var(--lime); border-left-color: var(--lime); background: var(--lime-soft); }
@@ -81,7 +85,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
   padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
   flex-shrink: 0;
 }
-.content-title { font-size: 18px; font-weight: 600; color: var(--text-b); letter-spacing: -0.01em; }
+.content-title { font-size: 18px; font-weight: 600; color: var(--text-b); letter-spacing: -0.01em; font-family: var(--sans); }
 .content-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
 
 .service-toggle-wrap { display: flex; align-items: center; gap: 10px; }
@@ -284,6 +288,127 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 .cat-bypass   { color: var(--red);   border-color: rgba(240,90,90,0.4); }
 .cat-production { color: #a08af0;    border-color: rgba(160,138,240,0.4); }
 
+.header-nav-tabs { display: flex; gap: 6px; align-items: center; }
+.nav-tab {
+  font-family: var(--sans); font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.05em; color: var(--muted); text-decoration: none;
+  padding: 6px 14px; border: 1px solid var(--border); border-radius: 4px;
+  transition: all 0.15s;
+}
+.nav-tab:hover { color: var(--text); border-color: var(--border-b); }
+.nav-tab.active { color: var(--bg); background: var(--lime); border-color: var(--lime); }
+
+/* ─── USER PROFILE widget ─── */
+.user-profile-widget {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.user-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--lime);
+  color: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-family: var(--sans);
+  cursor: pointer;
+  border: 1px solid var(--lime-dim);
+  transition: all 0.15s;
+  user-select: none;
+}
+.user-avatar-circle:hover {
+  box-shadow: 0 0 10px var(--lime-glow);
+  border-color: var(--lime);
+}
+.profile-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: var(--panel);
+  border: 1px solid var(--border-b);
+  border-radius: 4px;
+  padding: 12px;
+  margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+  z-index: 1000;
+  min-width: 160px;
+}
+.profile-dropdown-menu::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 12px;
+  border: 6px solid transparent;
+  border-bottom-color: var(--border-b);
+}
+
+/* ─── MODAL ─── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.modal-content {
+  background: var(--panel);
+  border: 1px solid var(--border-b);
+  border-radius: 6px;
+  width: 100%;
+  max-width: 360px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+  font-family: var(--sans);
+}
+.modal-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--lime);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.modal-field label {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  text-transform: uppercase;
+}
+.modal-field input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  font-family: var(--body);
+  transition: border-color 0.15s;
+}
+.modal-field input:focus {
+  border-color: var(--lime);
+}
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
 /* ─── SCROLLBAR global ─── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -296,9 +421,11 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 
   <!-- ═══ SIDEBAR ═══ -->
   <div class="sidebar">
-    <div class="sidebar-logo">
-      Manufacturing Copilot
-      <span>Configuration · PNRMPAS</span>
+    <div class="sidebar-header" style="display: flex; align-items: center; justify-content: space-between; padding: 18px 16px 14px; border-bottom: 1px solid var(--border);">
+      <div class="sidebar-logo" style="border-bottom: none; padding: 0;">
+        ⬡ Siuuu
+        <span>Intelligent Plant Assistant</span>
+      </div>
     </div>
 
     <nav class="nav">
@@ -307,7 +434,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
         <span class="nav-dot" id="dot-llm"></span>
       </div>
       <div class="nav-item" data-section="sql" onclick="switchSection('sql', this)">
-        <span class="nav-icon">🗄️</span> SQL Database
+        <span class="nav-icon">🗄️</span> Database Connection
         <span class="nav-dot" id="dot-sql"></span>
       </div>
       <div class="nav-item" data-section="opc" onclick="switchSection('opc', this)">
@@ -322,10 +449,14 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
         <span class="nav-icon">⚙️</span> Stored Procedures
         <span class="nav-dot" id="dot-procs"></span>
       </div>
+      <div class="nav-item" data-section="general" onclick="switchSection('general', this)">
+        <span class="nav-icon">🏢</span> Client Profile
+        <span class="nav-dot" id="dot-general"></span>
+      </div>
     </nav>
 
     <div class="sidebar-footer">
-      <a href="/" class="back-link">← Back to Copilot</a>
+      <a href="/home" class="back-link">← Back to Copilot</a>
     </div>
   </div>
 
@@ -339,14 +470,25 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           <div class="content-title">AI Model</div>
           <div class="content-sub">Configure and activate the local language model engine</div>
         </div>
-        <div class="service-toggle-wrap">
-          <span class="service-label">Service</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-llm" onchange="toggleService('llm', this.checked)"/>
-            <div class="toggle-track"></div>
-            <div class="toggle-thumb"></div>
-          </label>
-          <span class="status-badge off" id="badge-llm">OFFLINE</span>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+          <div class="service-toggle-wrap">
+            <span class="service-label">Service</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-llm" onchange="toggleService('llm', this.checked)"/>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span class="status-badge off" id="badge-llm">OFFLINE</span>
+          </div>
         </div>
       </div>
       <div class="content-body">
@@ -419,17 +561,28 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
     <div id="section-sql" class="section">
       <div class="content-header">
         <div>
-          <div class="content-title">SQL Database</div>
-          <div class="content-sub">MPAS_DB connection via read-only service account</div>
+          <div class="content-title">Database Connection</div>
+          <div class="content-sub">Database connection via read-only service account</div>
         </div>
-        <div class="service-toggle-wrap">
-          <span class="service-label">Service</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-sql" onchange="toggleService('sql', this.checked)"/>
-            <div class="toggle-track"></div>
-            <div class="toggle-thumb"></div>
-          </label>
-          <span class="status-badge off" id="badge-sql">OFFLINE</span>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+          <div class="service-toggle-wrap">
+            <span class="service-label">Service</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-sql" onchange="toggleService('sql', this.checked)"/>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span class="status-badge off" id="badge-sql">OFFLINE</span>
+          </div>
         </div>
       </div>
       <div class="content-body">
@@ -472,18 +625,14 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           <div class="field-row">
             <div class="field">
               <label>Connection Name</label>
-              <input type="text" id="sql-name" value="MPAS_Primary" placeholder="e.g. MPAS_Primary"/>
+              <input type="text" id="sql-name" value="Primary_DB" placeholder="e.g. Primary_DB"/>
             </div>
             <div class="field">
               <label>SQL Server Instance</label>
-              <input type="text" id="sql-server" value="PNRMPAS" placeholder="e.g. PNRMPAS or 192.168.1.10"/>
+              <input type="text" id="sql-server" value="localhost" placeholder="e.g. localhost or 192.168.1.10"/>
             </div>
           </div>
           <div class="field-row">
-            <div class="field">
-              <label>Database Name</label>
-              <input type="text" id="sql-db" value="MPAS_DB"/>
-            </div>
             <div class="field">
               <label>ODBC Driver</label>
               <select id="sql-driver">
@@ -492,11 +641,15 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
                 <option>SQL Server Native Client 11.0</option>
               </select>
             </div>
+            <div class="field">
+              <label>Connection Timeout (seconds)</label>
+              <input type="number" id="sql-timeout" value="30"/>
+            </div>
           </div>
           <div class="field-row">
             <div class="field">
               <label>Username</label>
-              <input type="text" id="sql-user" value="saapi"/>
+              <input type="text" id="sql-user" value="dbuser" placeholder="e.g. read_only_user"/>
             </div>
             <div class="field">
               <label>Password</label>
@@ -505,8 +658,14 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           </div>
           <div class="field-row single">
             <div class="field">
-              <label>Connection Timeout (seconds)</label>
-              <input type="number" id="sql-timeout" value="30" style="max-width:160px;"/>
+              <label>Database Name</label>
+              <div style="display: flex; gap: 8px;">
+                <select id="sql-db" style="flex: 1;">
+                  <option value="">-- Choose Database --</option>
+                  <option value="Production_DB" selected>Production_DB</option>
+                </select>
+                <button class="btn btn-secondary" type="button" onclick="fetchDatabases()" style="padding: 0 10px; font-family: var(--mono);">↻ Load</button>
+              </div>
             </div>
           </div>
           <div class="btn-row">
@@ -526,14 +685,25 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           <div class="content-title">OPC UA Server</div>
           <div class="content-sub">Takebishi DXP live machine data · PNRMPAS_DXPOPCUA_LIVE.dxp</div>
         </div>
-        <div class="service-toggle-wrap">
-          <span class="service-label">Service</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-opc" onchange="toggleService('opc', this.checked)"/>
-            <div class="toggle-track"></div>
-            <div class="toggle-thumb"></div>
-          </label>
-          <span class="status-badge off" id="badge-opc">OFFLINE</span>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+          <div class="service-toggle-wrap">
+            <span class="service-label">Service</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-opc" onchange="toggleService('opc', this.checked)"/>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span class="status-badge off" id="badge-opc">OFFLINE</span>
+          </div>
         </div>
       </div>
       <div class="content-body">
@@ -553,8 +723,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           <div class="field-row">
             <div class="field">
               <label>OPC UA Endpoint URL</label>
-              <input type="text" id="opc-url" value="opc.tcp://PNRMPAS:49320" placeholder="opc.tcp://host:port"/>
-              <div class="field-hint">e.g. opc.tcp://PNRMPAS:49320 or opc.tcp://192.168.1.10:49320</div>
+              <input type="text" id="opc-url" value="opc.tcp://localhost:4840" placeholder="opc.tcp://host:port"/>
+              <div class="field-hint">e.g. opc.tcp://localhost:4840 or opc.tcp://192.168.1.10:4840</div>
             </div>
             <div class="field">
               <label>Namespace Index</label>
@@ -649,14 +819,25 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           <div class="content-title">Knowledge Base</div>
           <div class="content-sub">SOPs, work instructions, manuals, and recipes — indexed for AI search</div>
         </div>
-        <div class="service-toggle-wrap">
-          <span class="service-label">Service</span>
-          <label class="toggle-switch">
-            <input type="checkbox" id="toggle-kb" onchange="toggleService('kb', this.checked)"/>
-            <div class="toggle-track"></div>
-            <div class="toggle-thumb"></div>
-          </label>
-          <span class="status-badge off" id="badge-kb">OFFLINE</span>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+          <div class="service-toggle-wrap">
+            <span class="service-label">Service</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggle-kb" onchange="toggleService('kb', this.checked)"/>
+              <div class="toggle-track"></div>
+              <div class="toggle-thumb"></div>
+            </label>
+            <span class="status-badge off" id="badge-kb">OFFLINE</span>
+          </div>
         </div>
       </div>
       <div class="content-body">
@@ -692,20 +873,8 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
           </div>
         </div>
 
-        <!-- Path indexer (manual path entry) -->
-        <div class="field-group">
-          <div class="field-group-title">Index from Server Path</div>
-          <div class="field-row">
-            <div class="field">
-              <label>File Path on Server</label>
-              <input type="text" id="kb-path" placeholder="e.g. C:\MPAS\SOPs\TorqueSpec.pdf"/>
-            </div>
-          </div>
-          <div class="btn-row">
-            <button class="btn btn-secondary" onclick="indexFromPath()">Index Document</button>
-          </div>
-          <div class="test-result" id="kb-index-result"></div>
-        </div>
+        <!-- Upload Status Output -->
+        <div class="test-result" id="kb-index-result" style="margin-bottom: 16px;"></div>
 
         <!-- Indexed documents list -->
         <div class="field-group">
@@ -735,6 +904,13 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
               <input type="number" id="kb-overlap" value="100"/>
             </div>
           </div>
+          <div class="field-row single">
+            <div class="field">
+              <label>Document Storage Directory</label>
+              <input type="text" id="kb-upload-dir" placeholder="e.g. D:\Siuuu Manual"/>
+              <div class="field-hint">Uploaded files will be saved directly into this directory</div>
+            </div>
+          </div>
           <div class="btn-row">
             <button class="btn btn-primary" onclick="saveKBConfig()">Save Settings</button>
           </div>
@@ -748,11 +924,22 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
       <div class="content-header">
         <div>
           <div class="content-title">Stored Procedures</div>
-          <div class="content-sub">Register MPAS procedures and define their purpose for the AI intent engine</div>
+          <div class="content-sub">Define their purpose for the AI intent engine</div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <span class="status-badge on" id="badge-procs">8 REGISTERED</span>
-          <button class="btn btn-secondary" style="padding:6px 14px;" onclick="addProcedureRow()">+ Add Procedure</button>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span class="status-badge on" id="badge-procs">8 REGISTERED</span>
+            <button class="btn btn-secondary" style="padding:6px 14px;" onclick="addProcedureRow()">+ Add Procedure</button>
+          </div>
         </div>
       </div>
       <div class="content-body">
@@ -788,6 +975,51 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
       </div>
     </div>
 
+    <!-- ─── SECTION: CLIENT PROFILE ─── -->
+    <div id="section-general" class="section">
+      <div class="content-header">
+        <div>
+          <div class="content-title">Client Profile</div>
+          <div class="content-sub">Customize the application with your organization's brand logo and name</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div class="client-branding-header" style="display: none; align-items: center; gap: 8px; border-right: 1px solid var(--border); padding-right: 16px; margin-right: 4px;">
+            <div class="client-header-logo-wrap" style="width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; overflow: hidden;"></div>
+            <span class="client-header-name" style="font-size: 12px; font-weight: 600; color: var(--text-b); font-family: var(--sans);"></span>
+          </div>
+          <div class="user-profile-header"></div>
+          <div class="header-nav-tabs">
+            <a href="/home" class="nav-tab">Home</a>
+            <a href="/setting" class="nav-tab active">Setting</a>
+          </div>
+        </div>
+      </div>
+      <div class="content-body">
+        <div class="field-group">
+          <div class="field-group-title">Branding Details</div>
+          <div class="field-row">
+            <div class="field">
+              <label>Client Name</label>
+              <input type="text" id="client-name-input" placeholder="e.g. MEI Corp"/>
+            </div>
+            <div class="field">
+              <label>Client Logo</label>
+              <div style="display: flex; gap: 12px; align-items: center;">
+                <input type="file" id="client-logo-input" accept="image/*" style="display: none;" onchange="previewClientLogo(this)"/>
+                <button class="btn btn-secondary" onclick="document.getElementById('client-logo-input').click()">📁 Choose Image</button>
+                <div id="client-logo-preview-wrap" style="width: 42px; height: 42px; border: 1px solid var(--border-b); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; background: var(--bg);">
+                  <span style="font-size: 10px; color: var(--muted);">No Logo</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveClientProfile()">Save Profile</button>
+            <button class="btn btn-danger" onclick="clearClientProfile()">Reset branding</button>
+          </div>
+        </div>
+      </div>
+
   </div><!-- end .content -->
 </div><!-- end .shell -->
 
@@ -795,11 +1027,16 @@ html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(-
 const API = window.location.origin;
 
 // ─── NAVIGATION ───
-function switchSection(name, el) {
+async function switchSection(name, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('section-' + name).classList.add('active');
   el.classList.add('active');
+  
+  if (name === 'procs') {
+    await fetchDBProcedures();
+    await loadProcedures();
+  }
 }
 
 // ─── SERVICE TOGGLE ───
@@ -849,6 +1086,14 @@ async function loadServiceStatus(name) {
       document.getElementById('sql-server-val').textContent = d.server || '—';
       document.getElementById('sql-db-val').textContent = d.database || '—';
       document.getElementById('sql-user-val').textContent = d.username || '—';
+      
+      // Update form values if they are defined
+      if (d.server) document.getElementById('sql-server').value = d.server;
+      if (d.username) document.getElementById('sql-user').value = d.username;
+      if (d.database) {
+        const sqlDbSelect = document.getElementById('sql-db');
+        sqlDbSelect.innerHTML = `<option value="${d.database}" selected>${d.database}</option>`;
+      }
       renderSQLConnections([d]);
     }
     if (name === 'opc') {
@@ -861,6 +1106,13 @@ async function loadServiceStatus(name) {
       document.getElementById('kb-chunks-val').textContent = (d.document_chunks || 0).toLocaleString();
       document.getElementById('kb-docs-val').textContent = d.document_count || 0;
       document.getElementById('kb-size-val').textContent = d.size_mb ? d.size_mb + ' MB' : '—';
+      if (d.upload_dir) document.getElementById('kb-upload-dir').value = d.upload_dir;
+      if (d.top_k) {
+        document.getElementById('kb-topk').value = d.top_k;
+        document.getElementById('kb-topk-val').textContent = 'Top ' + d.top_k;
+      }
+      if (d.chunk_size) document.getElementById('kb-chunk').value = d.chunk_size;
+      if (d.chunk_overlap) document.getElementById('kb-overlap').value = d.chunk_overlap;
     }
   } catch(e) {}
 }
@@ -921,15 +1173,17 @@ async function saveLLMConfig() {
   };
   try {
     await fetch(`${API}/api/admin/llm/config`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    alert('AI Model configuration saved.');
-  } catch(e) { alert('Save failed: ' + e.message); }
+    showAlert('AI Model configuration saved.');
+    loadServiceStatus('llm');
+  } catch(e) { showAlert('Save failed: ' + e.message); }
 }
 
 // ─── SQL ───
 function renderSQLConnections(conns) {
   const tbody = document.getElementById('sql-connections-body');
-  if (!conns || !conns.length) { tbody.innerHTML='<tr><td colspan="6" class="dim" style="padding:12px;font-family:var(--mono);font-size:11px;">No connections configured</td></tr>'; return; }
-  tbody.innerHTML = conns.map(c => `
+  const activeConns = (conns || []).filter(c => c && c.server && c.server !== '—');
+  if (!activeConns.length) { tbody.innerHTML='<tr><td colspan="6" class="dim" style="padding:12px;font-family:var(--mono);font-size:11px;">No connections configured</td></tr>'; return; }
+  tbody.innerHTML = activeConns.map(c => `
     <tr>
       <td class="mono">${c.name||'MPAS_Primary'}</td>
       <td>${c.server||'—'}</td>
@@ -977,18 +1231,117 @@ async function saveSQLConfig() {
   };
   try {
     await fetch(`${API}/api/admin/sql/config`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    alert('SQL connection saved.');
-  } catch(e) { alert('Save failed: ' + e.message); }
+    showAlert('SQL connection saved.');
+    loadServiceStatus('sql');
+  } catch(e) { showAlert('Save failed: ' + e.message); }
+}
+
+function deleteSQLConn(name) {
+  showConfirm('Are you sure you want to remove the database connection configuration?', async (confirmed) => {
+    if (confirmed) {
+      document.getElementById('sql-name').value = 'Primary_DB';
+      document.getElementById('sql-server').value = '';
+      document.getElementById('sql-user').value = '';
+      document.getElementById('sql-pass').value = '';
+      document.getElementById('sql-db').innerHTML = '<option value="">-- Choose Database --</option>';
+      document.getElementById('sql-timeout').value = '30';
+
+      const payload = {
+        name: 'Primary_DB',
+        server: '',
+        database: '',
+        username: '',
+        password: '',
+        driver: 'ODBC Driver 17 for SQL Server',
+        timeout: 30,
+      };
+
+      try {
+        // Toggle the SQL service off
+        await fetch(`${API}/api/admin/service/sql`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ enabled: false })
+        });
+        document.getElementById('toggle-sql').checked = false;
+        serviceState['sql'] = false;
+        document.getElementById('badge-sql').textContent = 'OFFLINE';
+        document.getElementById('badge-sql').className = 'status-badge off';
+        document.getElementById('dot-sql').className = 'nav-dot off';
+      } catch (err) {}
+
+      try {
+        await fetch(`${API}/api/admin/sql/config`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        showAlert('Database connection configuration removed.');
+        loadServiceStatus('sql');
+      } catch (e) {
+        showAlert('Failed to remove connection: ' + e.message);
+      }
+    }
+  });
+}
+
+async function fetchDatabases() {
+  const server = document.getElementById('sql-server').value;
+  const username = document.getElementById('sql-user').value;
+  const password = document.getElementById('sql-pass').value;
+  const driver = document.getElementById('sql-driver').value;
+  
+  if (!server || !username) {
+    showAlert("Please fill in SQL Server Instance, Username, and Password first.");
+    return;
+  }
+  
+  const select = document.getElementById('sql-db');
+  const originalHtml = select.innerHTML;
+  select.innerHTML = '<option value="">Loading databases...</option>';
+  
+  try {
+    const r = await fetch(`${API}/api/admin/sql/databases`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ server, username, password, driver })
+    });
+    const d = await r.json();
+    if (d.status === 'ok' && d.databases) {
+      if (d.databases.length === 0) {
+        select.innerHTML = '<option value="">No databases found</option>';
+      } else {
+        select.innerHTML = d.databases.map(db => `<option value="${db}">${db}</option>`).join('');
+      }
+    } else {
+      select.innerHTML = originalHtml;
+      showAlert("Failed to load databases: " + (d.error || "Unknown error"));
+    }
+  } catch(e) {
+    select.innerHTML = originalHtml;
+    showAlert("Failed to load databases: " + e.message);
+  }
 }
 
 // ─── OPC ───
+function getOPCUrl() {
+  const input = document.getElementById('opc-url');
+  let url = input.value.trim();
+  if (url.startsWith('cpo.tcp://')) {
+    url = 'opc.tcp://' + url.slice(10);
+    input.value = url;
+  }
+  return url;
+}
+
 async function discoverOPC() {
   const el = document.getElementById('opc-test-result');
   el.className='test-result show ok'; el.textContent='Discovering endpoints...';
   try {
+    const url = getOPCUrl();
     const r = await fetch(`${API}/api/admin/opc/discover`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ url: document.getElementById('opc-url').value })
+      body: JSON.stringify({ url })
     });
     const d = await r.json();
     if (d.endpoints && d.endpoints.length) {
@@ -1002,9 +1355,10 @@ async function testOPCConnection() {
   const el = document.getElementById('opc-test-result');
   el.className='test-result show ok'; el.textContent='Connecting...';
   try {
+    const url = getOPCUrl();
     const r = await fetch(`${API}/api/admin/opc/test`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ url: document.getElementById('opc-url').value, namespace: document.getElementById('opc-ns').value })
+      body: JSON.stringify({ url, namespace: document.getElementById('opc-ns').value })
     });
     const d = await r.json();
     if (d.ok) { el.className='test-result show ok'; el.textContent=`✓ Connected — Namespace ${d.namespace} · ${d.node_count||'?'} nodes found`; }
@@ -1016,9 +1370,10 @@ async function browseOPCTags() {
   document.getElementById('tag-browser-status').textContent = 'Browsing...';
   const tree = document.getElementById('tag-tree');
   try {
+    const url = getOPCUrl();
     const r = await fetch(`${API}/api/admin/opc/browse`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ url: document.getElementById('opc-url').value, namespace: document.getElementById('opc-ns').value })
+      body: JSON.stringify({ url, namespace: document.getElementById('opc-ns').value })
     });
     const d = await r.json();
     if (d.nodes && d.nodes.length) {
@@ -1041,7 +1396,7 @@ async function browseOPCTags() {
   }
 }
 
-function addTagToMonitor(nodeId, name) { alert('Tag "' + name + '" added to monitored list.\n\nNode ID: ' + nodeId); }
+function addTagToMonitor(nodeId, name) { showAlert('Tag "' + name + '" added to monitored list.\n\nNode ID: ' + nodeId); }
 
 function uploadCert() { document.getElementById('cert-file-input').click(); }
 function handleCertUpload(input) {
@@ -1053,7 +1408,7 @@ function handleCertUpload(input) {
 
 async function saveOPCConfig() {
   const payload = {
-    url: document.getElementById('opc-url').value,
+    url: getOPCUrl(),
     namespace: document.getElementById('opc-ns').value,
     security_policy: document.getElementById('opc-security').value,
     message_security: document.getElementById('opc-msg-security').value,
@@ -1062,8 +1417,9 @@ async function saveOPCConfig() {
   };
   try {
     await fetch(`${API}/api/admin/opc/config`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    alert('OPC UA configuration saved.');
-  } catch(e) { alert('Save failed: ' + e.message); }
+    showAlert('OPC UA configuration saved.');
+    loadServiceStatus('opc');
+  } catch(e) { showAlert('Save failed: ' + e.message); }
 }
 
 // ─── KNOWLEDGE BASE ───
@@ -1106,15 +1462,39 @@ async function indexAllFiles() {
   const resEl = document.getElementById('kb-index-result');
   resEl.className='test-result show ok'; resEl.textContent='Indexing...';
   let total=0;
+  let skipped=0;
+  let errors=[];
   for (const f of fileQueue) {
     const fd = new FormData(); fd.append('file', f);
     try {
       const r = await fetch(`${API}/api/admin/kb/upload`, { method:'POST', body: fd });
       const d = await r.json();
-      if (d.chunks_indexed) total += d.chunks_indexed;
-    } catch(e) {}
+      if (r.status === 409) {
+        skipped++;
+        errors.push(`${f.name} (Already exists)`);
+      } else if (!r.ok) {
+        skipped++;
+        errors.push(`${f.name} (${d.error || 'Failed'})`);
+      } else if (d.chunks_indexed) {
+        total += d.chunks_indexed;
+      }
+    } catch(e) {
+      skipped++;
+      errors.push(`${f.name} (${e.message})`);
+    }
   }
-  resEl.textContent = `✓ Indexed ${fileQueue.length} file(s) — ${total} total chunks`;
+  if (errors.length > 0) {
+    if (total > 0) {
+      resEl.className='test-result show err';
+      resEl.textContent = `✓ Indexed ${fileQueue.length - skipped} file(s) (${total} chunks). Conflict/Failed: ${errors.join(', ')}`;
+    } else {
+      resEl.className='test-result show err';
+      resEl.textContent = `✗ Failed: ${errors.join(', ')}`;
+    }
+  } else {
+    resEl.className='test-result show ok';
+    resEl.textContent = `✓ Indexed ${fileQueue.length} file(s) — ${total} total chunks`;
+  }
   fileQueue.length=0; renderFileQueue(); refreshKBStats();
 }
 
@@ -1141,28 +1521,67 @@ async function refreshKBStats() {
     document.getElementById('kb-chunks-val').textContent = (d.document_chunks||0).toLocaleString();
     document.getElementById('kb-docs-val').textContent = d.document_count || '—';
     document.getElementById('badge-kb').textContent = (d.document_chunks||0) + ' CHUNKS';
+
+    const docList = document.getElementById('doc-list');
+    if (d.files && d.files.length > 0) {
+      docList.innerHTML = d.files.map(f => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:4px;margin-bottom:4px;">
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-b);font-weight:bold;">${f.source}</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--muted);">${f.file_path || ''}</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      docList.innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 0;">No documents indexed yet</div>';
+    }
   } catch(e) {}
 }
 
 async function saveKBConfig() {
-  const payload = { top_k: parseInt(document.getElementById('kb-topk').value), chunk_size: parseInt(document.getElementById('kb-chunk').value), chunk_overlap: parseInt(document.getElementById('kb-overlap').value) };
+  const payload = {
+    top_k: parseInt(document.getElementById('kb-topk').value),
+    chunk_size: parseInt(document.getElementById('kb-chunk').value),
+    chunk_overlap: parseInt(document.getElementById('kb-overlap').value),
+    upload_dir: document.getElementById('kb-upload-dir').value.trim()
+  };
   try {
     await fetch(`${API}/api/admin/kb/config`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-    alert('Knowledge Base settings saved.');
-  } catch(e) {}
+    showAlert('Knowledge Base settings saved.');
+    loadServiceStatus('kb');
+  } catch(e) { showAlert('Save failed: ' + e.message); }
 }
 
 async function clearKnowledgeBase() {
-  if (!confirm('Clear all indexed documents? This cannot be undone.')) return;
-  try {
-    await fetch(`${API}/api/admin/kb/clear`, { method:'POST' });
-    refreshKBStats();
-    document.getElementById('doc-list').innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 0;">No documents indexed yet</div>';
-  } catch(e) {}
+  showConfirm('Clear all indexed documents? This cannot be undone.', async (confirmed) => {
+    if (!confirmed) return;
+    try {
+      await fetch(`${API}/api/admin/kb/clear`, { method:'POST' });
+      refreshKBStats();
+      document.getElementById('doc-list').innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:8px 0;">No documents indexed yet</div>';
+    } catch(e) {}
+  });
 }
 
 // ─── STORED PROCEDURES ───
 let procedures = [];
+let dbProcedures = [];
+
+async function fetchDBProcedures() {
+  try {
+    const r = await fetch(`${API}/api/admin/sql/procedures`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}) // uses current database configuration
+    });
+    const d = await r.json();
+    if (d.status === 'ok') {
+      dbProcedures = d.procedures || [];
+    }
+  } catch (e) {
+    console.error("Failed to fetch database procedures list:", e);
+  }
+}
 
 async function loadProcedures() {
   try {
@@ -1174,34 +1593,98 @@ async function loadProcedures() {
   } catch(e) {}
 }
 
+function updateProcedureName(index, val) {
+  const customInput = document.getElementById(`proc-name-custom-${index}`);
+  if (val === '__custom__') {
+    customInput.style.display = 'block';
+    procedures[index].procedure = customInput.value.trim();
+  } else {
+    customInput.style.display = 'none';
+    procedures[index].procedure = val;
+  }
+}
+
+function updateProcedureCustomName(index, val) {
+  procedures[index].procedure = val.trim();
+}
+
+function updateProcedureParams(index, val) {
+  procedures[index].params = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
+}
+
 function renderProcedures(procs) {
   const container = document.getElementById('proc-list-container');
   if (!procs.length) { container.innerHTML='<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:12px 0;">No procedures registered</div>'; return; }
-  container.innerHTML = procs.map((p,i) => `
-    <div class="proc-row" id="proc-row-${i}">
-      <div style="flex-shrink:0;">
-        <div class="proc-name">${p.procedure}</div>
-        <span class="proc-category cat-${p.category}">${p.category}</span>
-        <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">
-          ${(p.params||[]).map(param=>`<span style="font-family:var(--mono);font-size:9px;color:var(--cyan);background:var(--card-b);border:1px solid var(--border-b);padding:1px 6px;border-radius:3px;">${param}</span>`).join('')}
+  
+  container.innerHTML = procs.map((p,i) => {
+    const isCustom = p.procedure && !dbProcedures.includes(p.procedure);
+    return `
+      <div class="proc-row" id="proc-row-${i}" style="display: flex; flex-direction: column; align-items: stretch; gap: 14px; padding: 18px; border: 1px solid var(--border-b); margin-bottom: 16px;">
+        <div class="field-row">
+          <div class="field">
+            <label>Procedure Name</label>
+            <select onchange="updateProcedureName(${i}, this.value); renderProcedures(procedures);" style="width: 100%;">
+              <option value="">-- Select Procedure --</option>
+              ${dbProcedures.map(name => `<option value="${name}" ${name === p.procedure ? 'selected' : ''}>${name}</option>`).join('')}
+              <option value="__custom__" ${isCustom ? 'selected' : ''}>[Custom Procedure...]</option>
+            </select>
+            <input type="text" id="proc-name-custom-${i}" value="${p.procedure || ''}" 
+              placeholder="Enter custom procedure name" 
+              style="margin-top: 8px; display: ${isCustom ? 'block' : 'none'}; width: 100%;" 
+              onchange="updateProcedureCustomName(${i}, this.value)"/>
+          </div>
+          <div class="field">
+            <label>Category</label>
+            <select onchange="procedures[${i}].category = this.value; renderProcedures(procedures);" style="width: 100%;">
+              <option value="order" ${p.category === 'order' ? 'selected' : ''}>Order</option>
+              <option value="process" ${p.category === 'process' ? 'selected' : ''}>Process</option>
+              <option value="quality" ${p.category === 'quality' ? 'selected' : ''}>Quality</option>
+              <option value="production" ${p.category === 'production' ? 'selected' : ''}>Production</option>
+              <option value="material" ${p.category === 'material' ? 'selected' : ''}>Material</option>
+              <option value="bypass" ${p.category === 'bypass' ? 'selected' : ''}>Bypass</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Intent Keywords (comma-separated)</label>
+            <input type="text" value="${p.intent || ''}" 
+              placeholder="e.g. created order, orders list, list orders" 
+              onchange="procedures[${i}].intent = this.value" style="width: 100%;"/>
+            <div class="field-hint">Keywords used by AI to trigger this intent</div>
+          </div>
+          <div class="field">
+            <label>Columns to Consider (comma-separated)</label>
+            <input type="text" value="${p.columns_to_consider || ''}" 
+              placeholder="e.g. OrderNo, StageName, CreatedDate (leave empty for all)" 
+              onchange="procedures[${i}].columns_to_consider = this.value" style="width: 100%;"/>
+            <div class="field-hint">Filter results to only these columns before sending to AI</div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Parameters (comma-separated, e.g. @OrderNo)</label>
+            <input type="text" value="${(p.params || []).join(', ')}" 
+              placeholder="e.g. @OrderNo, @SerialNo" 
+              onchange="updateProcedureParams(${i}, this.value)" style="width: 100%;"/>
+            <div class="field-hint">Required input parameters for this stored procedure</div>
+          </div>
+          <div class="field">
+            <label>Description / Purpose (used by AI context)</label>
+            <input type="text" value="${p.description || ''}" 
+              placeholder="e.g. Returns progress of active orders" 
+              onchange="procedures[${i}].description = this.value" style="width: 100%;"/>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+          <button class="btn btn-danger" style="padding: 5px 12px; font-size: 11px;" onclick="removeProcedure(${i})">Remove Procedure</button>
         </div>
       </div>
-      <div class="proc-purpose" style="flex:1;">
-        <div style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Purpose (used by AI)</div>
-        <input type="text" value="${p.description||''}" placeholder="What does this procedure return? e.g. Returns active order status and stage progress"
-          onchange="procedures[${i}].description = this.value"
-          style="width:100%;background:transparent;border:none;border-bottom:1px solid var(--border-b);color:var(--text);font-size:12px;font-family:var(--sans);padding:4px 0;outline:none;transition:border-color 0.15s;"
-          onfocus="this.style.borderBottomColor='var(--lime)'" onblur="this.style.borderBottomColor='var(--border-b)'"/>
-        <div style="margin-top:8px;">
-          <div style="font-size:10px;color:var(--muted);font-family:var(--mono);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Example Questions</div>
-          <div style="font-size:11px;color:var(--muted);">${(p.example_questions||[]).slice(0,2).map(q=>`→ ${q}`).join('<br/>')}</div>
-        </div>
-      </div>
-      <div style="flex-shrink:0;">
-        <button class="btn btn-danger" style="padding:4px 10px;font-size:10px;" onclick="removeProcedure(${i})">Remove</button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function filterProcs(val) {
@@ -1214,10 +1697,10 @@ function filterProcs(val) {
   renderProcedures(filtered);
 }
 
-function removeProcedure(i) { if (confirm('Remove this procedure?')) { procedures.splice(i,1); renderProcedures(procedures); } }
+function removeProcedure(i) { showConfirm('Remove this procedure?', (confirmed) => { if (confirmed) { procedures.splice(i,1); renderProcedures(procedures); } }); }
 
 function addProcedureRow() {
-  procedures.push({ procedure: '', category: 'order', params: [], description: '', example_questions: [] });
+  procedures.push({ procedure: '', category: 'order', params: [], description: '', intent: '', columns_to_consider: '', example_questions: [] });
   renderProcedures(procedures);
   document.getElementById('proc-list-container').lastElementChild?.scrollIntoView({behavior:'smooth'});
 }
@@ -1228,13 +1711,15 @@ async function saveProcedures() {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ procedures })
     });
-    alert('Procedures saved.');
+    showAlert('Procedures saved.');
+    await fetchDBProcedures();
     loadProcedures();
-  } catch(e) { alert('Save failed: ' + e.message); }
+  } catch(e) { showAlert('Save failed: ' + e.message); }
 }
 
 // ─── INIT ───
 async function init() {
+  await fetchDBProcedures();
   await loadProcedures();
   await refreshKBStats();
 
@@ -1249,15 +1734,257 @@ async function init() {
         document.getElementById('badge-' + name).textContent = 'ONLINE';
         document.getElementById('badge-' + name).className = 'status-badge on';
         document.getElementById('dot-' + name).className = 'nav-dot on';
-        loadServiceStatus(name);
       }
+      loadServiceStatus(name);
     }
   } catch(e) {}
+  
+  initUserProfile();
+  initClientProfileFields();
+  updateClientHeaderBranding();
 }
+
+// User Profile Logic
+function initUserProfile() {
+  const user = localStorage.getItem('mfg_user');
+  const headers = document.querySelectorAll('.user-profile-header');
+  
+  headers.forEach(header => {
+    if (user) {
+      const firstLetter = user.charAt(0).toUpperCase();
+      header.innerHTML = `
+        <div class="user-profile-widget">
+          <div class="user-avatar-circle" onclick="toggleProfileDropdown(event)" title="${user}">
+            ${firstLetter}
+          </div>
+          <div id="profile-dropdown" class="profile-dropdown-menu">
+            <div style="font-size: 10px; color: var(--muted); margin-bottom: 4px; font-family: var(--mono); text-transform: uppercase;">Logged In As</div>
+            <div style="font-weight: 600; color: var(--text-b); margin-bottom: 12px; font-size: 13px; font-family: var(--sans); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${user}</div>
+            <button class="btn btn-danger" onclick="logoutUser()" style="width: 100%; padding: 6px 10px; font-size: 11px; justify-content: center; font-family: var(--sans);">Logout</button>
+          </div>
+        </div>
+      `;
+    } else {
+      header.innerHTML = `
+        <button class="btn btn-secondary" onclick="showLoginModal()" style="font-family: var(--sans); font-size: 12px; padding: 6px 14px;">Login</button>
+      `;
+    }
+  });
+}
+
+function showLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) {
+    modal.style.display = 'flex';
+    const input = document.getElementById('login-username');
+    if (input) {
+      input.value = '';
+      input.focus();
+    }
+  }
+}
+
+function hideLoginModal() {
+  const modal = document.getElementById('login-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+function submitLogin() {
+  const input = document.getElementById('login-username');
+  if (!input) return;
+  const user = input.value.trim();
+  if (user) {
+    localStorage.setItem('mfg_user', user);
+    hideLoginModal();
+    initUserProfile();
+  }
+}
+
+function logoutUser() {
+  localStorage.removeItem('mfg_user');
+  initUserProfile();
+}
+
+function toggleProfileDropdown(event) {
+  event.stopPropagation();
+  const target = event.currentTarget.nextElementSibling;
+  const allDropdowns = document.querySelectorAll('.profile-dropdown-menu');
+  allDropdowns.forEach(d => {
+    if (d !== target) d.style.display = 'none';
+  });
+  if (target) {
+    target.style.display = target.style.display === 'block' ? 'none' : 'block';
+  }
+}
+
+// Close profile dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const allDropdowns = document.querySelectorAll('.profile-dropdown-menu');
+  allDropdowns.forEach(dropdown => {
+    if (dropdown.style.display === 'block') {
+      const widget = dropdown.closest('.user-profile-widget');
+      if (widget && !widget.contains(e.target)) {
+        dropdown.style.display = 'none';
+      }
+    }
+  });
+});
 
 init();
 // Auto-refresh OPC status if enabled
 setInterval(() => { if (serviceState['opc']) loadServiceStatus('opc'); }, 5000);
+
+// Custom Notification Logic
+let notificationCallback = null;
+
+function showAlert(message, title = 'System Notification') {
+  const modal = document.getElementById('notification-modal');
+  const titleEl = document.getElementById('notification-title');
+  const msgEl = document.getElementById('notification-message');
+  const cancelBtn = document.getElementById('notification-cancel-btn');
+  const okBtn = document.getElementById('notification-ok-btn');
+  
+  if (modal && titleEl && msgEl && cancelBtn && okBtn) {
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    cancelBtn.style.display = 'none';
+    okBtn.textContent = 'OK';
+    modal.style.display = 'flex';
+    notificationCallback = null;
+  }
+}
+
+function showConfirm(message, callback, title = 'System Confirmation') {
+  const modal = document.getElementById('notification-modal');
+  const titleEl = document.getElementById('notification-title');
+  const msgEl = document.getElementById('notification-message');
+  const cancelBtn = document.getElementById('notification-cancel-btn');
+  const okBtn = document.getElementById('notification-ok-btn');
+  
+  if (modal && titleEl && msgEl && cancelBtn && okBtn) {
+    titleEl.textContent = title;
+    msgEl.textContent = message;
+    cancelBtn.style.display = 'inline-flex';
+    okBtn.textContent = 'Confirm';
+    modal.style.display = 'flex';
+    notificationCallback = callback;
+  }
+}
+
+function closeNotification(confirmed) {
+  const modal = document.getElementById('notification-modal');
+  if (modal) modal.style.display = 'none';
+  if (notificationCallback) {
+    notificationCallback(confirmed);
+    notificationCallback = null;
+  }
+}
+
+// Client Profile Branding
+let clientLogoData = null;
+
+function previewClientLogo(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      clientLogoData = e.target.result;
+      const preview = document.getElementById('client-logo-preview-wrap');
+      if (preview) preview.innerHTML = `<img src="${clientLogoData}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+
+function saveClientProfile() {
+  const name = document.getElementById('client-name-input').value.trim();
+  localStorage.setItem('mfg_client_name', name);
+  if (clientLogoData) {
+    localStorage.setItem('mfg_client_logo', clientLogoData);
+  }
+  showAlert('Client branding profile saved successfully.');
+  updateClientHeaderBranding();
+}
+
+function clearClientProfile() {
+  localStorage.removeItem('mfg_client_name');
+  localStorage.removeItem('mfg_client_logo');
+  clientLogoData = null;
+  const nameInput = document.getElementById('client-name-input');
+  if (nameInput) nameInput.value = '';
+  const preview = document.getElementById('client-logo-preview-wrap');
+  if (preview) preview.innerHTML = `<span style="font-size: 10px; color: var(--muted);">No Logo</span>`;
+  showAlert('Client branding reset to default.');
+  updateClientHeaderBranding();
+}
+
+function initClientProfileFields() {
+  const name = localStorage.getItem('mfg_client_name') || '';
+  const logo = localStorage.getItem('mfg_client_logo') || '';
+  
+  const nameInput = document.getElementById('client-name-input');
+  if (nameInput) nameInput.value = name;
+  
+  const preview = document.getElementById('client-logo-preview-wrap');
+  if (preview) {
+    if (logo) {
+      clientLogoData = logo;
+      preview.innerHTML = `<img src="${logo}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`;
+    } else {
+      preview.innerHTML = `<span style="font-size: 10px; color: var(--muted);">No Logo</span>`;
+    }
+  }
+}
+
+function updateClientHeaderBranding() {
+  const name = localStorage.getItem('mfg_client_name');
+  const logo = localStorage.getItem('mfg_client_logo');
+  const brandDivs = document.querySelectorAll('.client-branding-header');
+  
+  brandDivs.forEach(div => {
+    if (name || logo) {
+      div.style.display = 'flex';
+      const nameEl = div.querySelector('.client-header-name');
+      const logoWrap = div.querySelector('.client-header-logo-wrap');
+      if (nameEl) nameEl.textContent = name || '';
+      if (logoWrap) {
+        if (logo) {
+          logoWrap.innerHTML = `<img src="${logo}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />`;
+        } else {
+          logoWrap.innerHTML = '';
+        }
+      }
+    } else {
+      div.style.display = 'none';
+    }
+  });
+}
 </script>
+
+<!-- Login Modal -->
+<div id="login-modal" class="modal-overlay">
+  <div class="modal-content">
+    <div class="modal-title">System Authentication</div>
+    <div class="modal-field">
+      <label for="login-username">Operator Name</label>
+      <input type="text" id="login-username" placeholder="e.g. Nithin" onkeydown="if(event.key==='Enter') submitLogin()" />
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-primary" onclick="submitLogin()" style="background:var(--lime); color:#060705; font-weight:700; padding:6px 12px; font-size:11px; width: 100%; justify-content: center;">Login</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Notification Modal -->
+<div id="notification-modal" class="modal-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 9999;">
+  <div class="modal-content" style="background: var(--panel); border: 1px solid var(--border-b); border-radius: 6px; width: 100%; max-width: 400px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.8); font-family: var(--sans);">
+    <div id="notification-title" class="modal-title" style="font-size: 16px; font-weight: 600; color: var(--lime); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em;">Notification</div>
+    <div id="notification-message" style="font-size: 13px; color: var(--text); line-height: 1.5; margin-bottom: 24px; font-family: var(--body); white-space: pre-line;"></div>
+    <div class="modal-buttons" style="display: flex; justify-content: flex-end; gap: 8px;">
+      <button id="notification-cancel-btn" class="btn btn-ghost" onclick="closeNotification(false)" style="display: none; background:transparent; border:1px solid var(--border-b); color:var(--text-dim); padding:6px 12px; font-size:11px;">Cancel</button>
+      <button id="notification-ok-btn" class="btn btn-primary" onclick="closeNotification(true)" style="background:var(--lime); color:#060705; font-weight:700; padding:6px 12px; font-size:11px;">OK</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

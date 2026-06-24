@@ -35,8 +35,8 @@ class Settings(BaseSettings):
     # SQL Server — MUST be set in .env
     # ------------------------------------------------------------------
     SQL_SERVER: str = "localhost"
-    SQL_DATABASE: str = "MPAS_DB"
-    SQL_USERNAME: str = "saapi"
+    SQL_DATABASE: str = "Production_DB"
+    SQL_USERNAME: str = "dbuser"
     SQL_PASSWORD: str = ""             # MUST be set in .env
     SQL_DRIVER: str = "ODBC Driver 17 for SQL Server"
     SQL_TIMEOUT: int = 30
@@ -55,7 +55,7 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
     # OPC UA — MUST be set in .env
     # ------------------------------------------------------------------
-    OPC_SERVER_URL: str = "opc.tcp://localhost:49320"
+    OPC_SERVER_URL: str = "opc.tcp://localhost:4840"
     OPC_NAMESPACE: str = "2"
     OPC_CACHE_INTERVAL_SEC: int = 5
     OPC_CONNECTION_TIMEOUT: int = 10
@@ -82,6 +82,9 @@ class Settings(BaseSettings):
     CHROMA_COLLECTION_DOCS: str = "manufacturing_docs"
     CHROMA_TOP_K: int = 5
     SENTENCE_TRANSFORMERS_CACHE: str = "sentence_transformers_cache"
+    KB_UPLOAD_DIR: str = ""
+    KB_CHUNK_SIZE: int = 800
+    KB_CHUNK_OVERLAP: int = 100
 
     # ------------------------------------------------------------------
     # Logging
@@ -91,3 +94,46 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def update_env_values(updates: dict):
+    import os
+    env_path = ".env"
+    lines = []
+    if os.path.exists(env_path):
+        try:
+            with open(env_path, "r", encoding="utf-8") as f:
+                lines = f.readlines()
+        except Exception:
+            pass
+
+    updated_keys = set()
+    new_lines = []
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            new_lines.append(line)
+            continue
+        if "=" in stripped:
+            parts = stripped.split("=", 1)
+            k = parts[0].strip()
+            if k in updates:
+                new_lines.append(f"{k}={updates[k]}\n")
+                updated_keys.add(k)
+            else:
+                new_lines.append(line)
+        else:
+            new_lines.append(line)
+
+    for k, v in updates.items():
+        if k not in updated_keys:
+            if new_lines and not new_lines[-1].endswith("\n"):
+                new_lines[-1] += "\n"
+            new_lines.append(f"{k}={v}\n")
+
+    try:
+        with open(env_path, "w", encoding="utf-8") as f:
+            f.writelines(new_lines)
+    except Exception:
+        pass

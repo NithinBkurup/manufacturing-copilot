@@ -29,122 +29,27 @@ logger = logging.getLogger("copilot.sql")
 #   NO code change needed anywhere else.
 # ---------------------------------------------------------------------------
 
-PROCEDURE_REGISTRY: Dict[str, Dict[str, Any]] = {
-    # ---- ORDER / PRODUCTION ---------------------------------------------------
-    "SP_MPAS_CREATED_ORDERS": {
-        "description": "Returns active order information including status, material, stage progress, and bypass status",
-        "category": "order",
-        "params": ["@OrderNo", "@LineCode"],
-        "optional_params": ["@LineCode"],
-        "example_questions": [
-            "What is the status of order 147190737?",
-            "Show me order details for RHPW133610",
-            "Is order 147190737 complete?",
-            "What orders are running on line 3?",
-        ],
-    },
+PROCEDURE_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
-    # ---- PROCESS DATA --------------------------------------------------------
-    "PNR_Get_updateProcessData_API_Raw_Data": {
-        "description": "Returns process execution data — tool results, tightening data, stage pass/fail",
-        "category": "process",
-        "params": ["@OrderNo"],
-        "optional_params": [],
-        "example_questions": [
-            "Show process results for order 147190737",
-            "What stages passed for serial RHPW133610?",
-            "Did order 147190737 pass all operations?",
-            "Show me tightening results for this order",
-        ],
-    },
 
-    # ---- QR / SCAN DATA ------------------------------------------------------
-    "PNR_Get_updateQRV2_API_Raw_Data": {
-        "description": "Returns QR scan data — part scans, material traceability, scan timestamps",
-        "category": "quality",
-        "params": ["@OrderNo"],
-        "optional_params": [],
-        "example_questions": [
-            "What parts were scanned on order 147190737?",
-            "Show material scan history for RHPW133610",
-            "Were all parts scanned for order 147190737?",
-            "Show QR scan log for this order",
-        ],
-    },
+def load_procedures_config():
+    global APPROVED_PROCEDURES, PROCEDURE_REGISTRY
+    import json
+    import os
+    config_path = "config/procedures.json"
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                if isinstance(saved, dict):
+                    PROCEDURE_REGISTRY.clear()
+                    PROCEDURE_REGISTRY.update(saved)
+        except Exception:
+            pass
+    APPROVED_PROCEDURES = set(PROCEDURE_REGISTRY.keys())
 
-    # ---- HOURLY METRICS -------------------------------------------------------
-    # NOTE: MPAS_HOURLY_PRODUCTIONMETRICS is updated in-place — use RowUpdateTime
-    "SP_MPAS_HOURLY_PRODUCTION_METRICS": {
-        "description": "Returns hourly production metrics per line — actual vs target, efficiency",
-        "category": "production",
-        "params": ["@LineCode", "@ShiftDate", "@ShiftID"],
-        "optional_params": ["@ShiftDate", "@ShiftID"],
-        "example_questions": [
-            "How many units did line 3 produce this shift?",
-            "What is the current efficiency on line 1?",
-            "Show hourly output for shift A today",
-            "How are we tracking against target?",
-        ],
-    },
 
-    # ---- BOM / SAP -----------------------------------------------------------
-    "SP_MPAS_SAP_ORDER_BOM": {
-        "description": "Returns planned BOM from SAP_ORDER_BOM_V2 — planned parts vs scanned parts comparison",
-        "category": "material",
-        "params": ["@OrderNo"],
-        "optional_params": [],
-        "example_questions": [
-            "What parts are on the BOM for order 147190737?",
-            "Show SAP BOM vs actual scan for RHPW133610",
-            "Are there any missing parts on order 147190737?",
-            "What materials are planned for this order?",
-        ],
-    },
-
-    # ---- BYPASS WORKFLOW -----------------------------------------------------
-    "SP_MPAS_BYPASS_AUDIT": {
-        "description": "Returns bypass request and approval audit trail — multi-step workflow history",
-        "category": "bypass",
-        "params": ["@OrderNo"],
-        "optional_params": [],
-        "example_questions": [
-            "Was there a bypass on order 147190737?",
-            "Show bypass history for RHPW133610",
-            "Who approved the bypass for this order?",
-            "Is there a pending bypass request?",
-        ],
-    },
-
-    # ---- TORQUE / QUALITY ----------------------------------------------------
-    "SP_MPAS_PROCESS_STATUS_TORQUE": {
-        "description": "Returns torque data TorqueBolt1-38 from MPAS_PROCESS_STATUS for quality traceability",
-        "category": "quality",
-        "params": ["@OrderNo", "@SerialNo"],
-        "optional_params": ["@SerialNo"],
-        "example_questions": [
-            "Show torque results for order 147190737",
-            "What was the torque on bolt 5 for RHPW133610?",
-            "Did all torque values pass for this order?",
-            "Show quality traceability for order 147190737",
-        ],
-    },
-
-    # ---- DEVIATION -----------------------------------------------------------
-    "SP_MPAS_ORDER_DEVIATIONS": {
-        "description": "Returns deviation records — DeviationStatus, DeviationComment, DeviationDoneBy",
-        "category": "quality",
-        "params": ["@OrderNo"],
-        "optional_params": [],
-        "example_questions": [
-            "Are there any deviations on order 147190737?",
-            "Show deviation log for RHPW133610",
-            "Who raised the deviation on this order?",
-            "What is the deviation status?",
-        ],
-    },
-}
-
-# Build a set of all approved procedure names for fast validation
+load_procedures_config()
 APPROVED_PROCEDURES = set(PROCEDURE_REGISTRY.keys())
 
 
@@ -221,11 +126,13 @@ class SQLService:
         return [
             {
                 "procedure": name,
-                "category": meta["category"],
-                "description": meta["description"],
-                "params": meta["params"],
+                "category": meta.get("category", "order"),
+                "description": meta.get("description", ""),
+                "intent": meta.get("intent", ""),
+                "columns_to_consider": meta.get("columns_to_consider", ""),
+                "params": meta.get("params", []),
                 "optional_params": meta.get("optional_params", []),
-                "example_questions": meta["example_questions"],
+                "example_questions": meta.get("example_questions", []),
             }
             for name, meta in PROCEDURE_REGISTRY.items()
         ]

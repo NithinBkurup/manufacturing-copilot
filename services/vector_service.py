@@ -71,26 +71,73 @@ class VectorService:
             logger.warning("RAG query error: %s", exc)
             return ""
 
-    async def index_document(self, file_path: str) -> int:
-        """Index a document file into ChromaDB. Returns number of chunks added."""
+    async def index_document(self, file_path: str, original_name: Optional[str] = None) -> int:
+        """Index a document file or directory recursively into ChromaDB. Returns number of chunks added."""
         path = Path(file_path)
         if not path.exists():
             raise FileNotFoundError(f"Document not found: {file_path}")
 
+        if path.is_dir():
+            total_chunks = 0
+            indexed_any = False
+            supported_suffixes = {".pdf", ".docx", ".xlsx", ".xls", ".pptx", ".ppt", ".txt"}
+            files_to_index = []
+            for root, _, filenames in os.walk(path):
+                for f in filenames:
+                    fp = Path(root) / f
+                    if fp.suffix.lower() in supported_suffixes:
+                        files_to_index.append(fp)
+
+            if not files_to_index:
+                raise ValueError("No supported files found in the directory.")
+
+            already_indexed_count = 0
+            for fp in files_to_index:
+                # Check if already indexed
+                if self._collection is not None:
+                    existing = self._collection.get(where={"source": fp.name})
+                    if existing and existing.get("ids"):
+                        already_indexed_count += 1
+                        continue  # Skip already indexed file in directory walk
+                
+                try:
+                    chunks = await self._index_single_file(fp, fp.name)
+                    if chunks > 0:
+                        indexed_any = True
+                        total_chunks += chunks
+                except Exception as e:
+                    logger.error("Failed to index %s during walk: %s", fp, e)
+            
+            if not indexed_any and already_indexed_count > 0:
+                raise ValueError("All files in this directory are already indexed.")
+            return total_chunks
+
+        else:
+            source_name = original_name or path.name
+            if self._collection is not None:
+                existing = self._collection.get(where={"source": source_name})
+                if existing and existing.get("ids"):
+                    raise ValueError(f"File '{source_name}' is already indexed in the Knowledge Base.")
+            
+            return await self._index_single_file(path, source_name)
+
+    async def _index_single_file(self, path: Path, source_name: str) -> int:
         text = self._extract_text(path)
         if not text:
-            logger.warning("No text extracted from %s", file_path)
+            logger.warning("No text extracted from %s", path)
             return 0
 
-        chunks = self._chunk_text(text)
+        chunk_size = getattr(settings, "KB_CHUNK_SIZE", 800)
+        chunk_overlap = getattr(settings, "KB_CHUNK_OVERLAP", 100)
+        chunks = self._chunk_text(text, chunk_size, chunk_overlap)
         if not chunks:
             return 0
 
-        ids = [f"{path.stem}_{i}" for i in range(len(chunks))]
-        metadatas = [{"source": path.name, "file_path": str(path)} for _ in chunks]
+        ids = [f"{path.stem}_{i}_{abs(hash(source_name)) & 0xffffffff}" for i in range(len(chunks))]
+        metadatas = [{"source": source_name, "file_path": str(path)} for _ in chunks]
 
         self._collection.upsert(ids=ids, documents=chunks, metadatas=metadatas)
-        logger.info("Indexed %d chunks from %s", len(chunks), path.name)
+        logger.info("Indexed %d chunks from %s", len(chunks), source_name)
         return len(chunks)
 
     def _extract_text(self, path: Path) -> str:
@@ -127,14 +174,37 @@ class VectorService:
             logger.error("Text extraction failed for %s: %s", path.name, exc)
         return ""
 
-    def _chunk_text(self, text: str) -> List[str]:
+    def _chunk_text(self, text: str, chunk_size: int = 800, chunk_overlap: int = 100) -> List[str]:
         chunks = []
         start = 0
         while start < len(text):
-            end = start + CHUNK_SIZE
+            end = start + chunk_size
             chunks.append(text[start:end])
-            start += CHUNK_SIZE - CHUNK_OVERLAP
+            start += chunk_size - chunk_overlap
         return [c.strip() for c in chunks if c.strip()]
+
+    @property
+    def indexed_files(self) -> List[dict]:
+        if self._collection is None:
+            return []
+        try:
+            results = self._collection.get(include=["metadatas"])
+            if not results or not results.get("metadatas"):
+                return []
+            seen = set()
+            files = []
+            for meta in results["metadatas"]:
+                if not meta:
+                    continue
+                source = meta.get("source")
+                path = meta.get("file_path")
+                if source and source not in seen:
+                    seen.add(source)
+                    files.append({"source": source, "file_path": path or ""})
+            return files
+        except Exception as exc:
+            logger.warning("Failed to get indexed files: %s", exc)
+            return []
 
     @property
     def document_count(self) -> int:

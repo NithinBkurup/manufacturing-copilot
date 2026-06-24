@@ -136,6 +136,18 @@ class ManufacturingService:
         if not rows:
             return f"[{intent.procedure}] No records found for the given parameters."
 
+        # Filter columns if columns_to_consider is configured
+        info = self._sql.procedure_info(intent.procedure)
+        if info:
+            cols_str = info.get("columns_to_consider", "")
+            if cols_str:
+                cols_set = {c.strip().lower() for c in cols_str.split(",") if c.strip()}
+                if cols_set:
+                    rows = [
+                        {k: v for k, v in r.items() if k.lower() in cols_set}
+                        for r in rows
+                    ]
+
         # Highlight key fields based on intent category
         header = f"[DATA SOURCE: {intent.procedure}] {len(rows)} record(s) retrieved\n"
         header += f"Query parameters: {intent.sql_params()}\n\n"
@@ -220,7 +232,7 @@ class ManufacturingService:
 
     def get_intent_routing_table(self) -> List[Dict]:
         """Return intent → procedure routing table for admin inspection."""
-        from services.intent_service import INTENT_MAP
+        intent_map = self._intent._get_dynamic_intent_map()
         return [
             {
                 "intent": intent_name,
@@ -231,5 +243,5 @@ class ManufacturingService:
                 "keywords": meta["keywords"],
                 "required_entities": meta.get("required_entities", []),
             }
-            for intent_name, meta in INTENT_MAP.items()
+            for intent_name, meta in intent_map.items()
         ]

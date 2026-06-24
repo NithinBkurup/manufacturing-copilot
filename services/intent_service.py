@@ -48,100 +48,7 @@ BOLT_PATTERN = re.compile(r"\bbolt\s*([1-9][0-9]?)\b", re.IGNORECASE)
 # Intent definitions — map to MPAS stored procedures
 # ---------------------------------------------------------------------------
 
-INTENT_MAP: Dict[str, Dict] = {
-    "order_status": {
-        "procedure": "SP_MPAS_CREATED_ORDERS",
-        "required_entities": [],          # Can run with just OrderNo OR LineCode
-        "keywords": [
-            "status", "order", "where is", "progress", "stage",
-            "complete", "running", "active", "created", "details"
-        ],
-        "priority": 2,
-    },
-    "process_results": {
-        "procedure": "PNR_Get_updateProcessData_API_Raw_Data",
-        "required_entities": ["order_no"],
-        "keywords": [
-            "process", "result", "pass", "fail", "operation", "stage result",
-            "tool", "ok", "ng", "tightening", "station"
-        ],
-        "priority": 3,
-    },
-    "qr_scan": {
-        "procedure": "PNR_Get_updateQRV2_API_Raw_Data",
-        "required_entities": ["order_no"],
-        "keywords": [
-            "scan", "scanned", "qr", "part scan", "barcode", "missing scan",
-            "part traced", "traceability scan"
-        ],
-        "priority": 3,
-    },
-    "production_metrics": {
-        "procedure": "SP_MPAS_HOURLY_PRODUCTION_METRICS",
-        "required_entities": [],
-        "keywords": [
-            "how many", "output", "count", "units", "produced", "efficiency",
-            "target", "actual", "throughput", "hourly", "shift output",
-            "production count", "takt"
-        ],
-        "priority": 2,
-    },
-    "bom_material": {
-        "procedure": "SP_MPAS_SAP_ORDER_BOM",
-        "required_entities": ["order_no"],
-        "keywords": [
-            "bom", "bill of material", "parts", "material", "planned",
-            "sap", "missing part", "component", "part list"
-        ],
-        "priority": 3,
-    },
-    "bypass": {
-        "procedure": "SP_MPAS_BYPASS_AUDIT",
-        "required_entities": ["order_no"],
-        "keywords": [
-            "bypass", "bypassed", "approved", "bypass request",
-            "who approved", "bypass history", "override"
-        ],
-        "priority": 4,
-    },
-    "torque_quality": {
-        "procedure": "SP_MPAS_PROCESS_STATUS_TORQUE",
-        "required_entities": [],
-        "keywords": [
-            "torque", "bolt", "tightening torque", "nm", "newton",
-            "quality trace", "torque result", "bolt torque"
-        ],
-        "priority": 4,
-    },
-    "deviation": {
-        "procedure": "SP_MPAS_ORDER_DEVIATIONS",
-        "required_entities": ["order_no"],
-        "keywords": [
-            "deviation", "deviations", "deviated", "who raised",
-            "deviation status", "deviation comment", "ncr"
-        ],
-        "priority": 4,
-    },
-    "live_opc": {
-        "procedure": None,               # Served from cache — no SQL call
-        "required_entities": [],
-        "keywords": [
-            "live", "right now", "current status", "machine status",
-            "is running", "opc", "plc", "recipe running", "current recipe",
-            "what is on line", "line status"
-        ],
-        "priority": 1,
-    },
-    "document_search": {
-        "procedure": None,               # Served from ChromaDB RAG
-        "required_entities": [],
-        "keywords": [
-            "sop", "procedure", "instruction", "manual", "how to", "work instruction",
-            "troubleshoot", "what is the process for", "guide", "document"
-        ],
-        "priority": 1,
-    },
-}
+INTENT_MAP: Dict[str, Dict] = {}
 
 
 # ---------------------------------------------------------------------------
@@ -187,6 +94,70 @@ class IntentService:
     Routes to the correct stored procedure or data source.
     """
 
+    def _get_dynamic_intent_map(self) -> Dict[str, Dict]:
+        # Start with default built-in intents (live_opc, document_search)
+        intent_map = {
+            "live_opc": {
+                "procedure": None,
+                "required_entities": [],
+                "keywords": ["live", "right now", "current status", "machine status", "is running", "opc", "plc", "recipe", "line status"],
+                "priority": 4
+            },
+            "document_search": {
+                "procedure": None,
+                "required_entities": [],
+                "keywords": ["sop", "procedure", "instruction", "manual", "how to", "work instruction", "troubleshoot", "guide", "document"],
+                "priority": 4
+            }
+        }
+        
+        # Dynamically add procedures from PROCEDURE_REGISTRY
+        from services.sql_service import PROCEDURE_REGISTRY
+        for proc_name, meta in PROCEDURE_REGISTRY.items():
+            keywords = []
+            
+            # User defined intent keywords
+            intent_val = meta.get("intent", "")
+            if intent_val:
+                keywords.extend([k.strip().lower() for k in intent_val.split(",") if k.strip()])
+            
+            # Category and description keywords
+            desc_val = meta.get("description", "")
+            if desc_val:
+                keywords.extend([k.strip().lower() for k in desc_val.split() if len(k) > 3])
+                
+            cat_val = meta.get("category", "")
+            if cat_val:
+                keywords.append(cat_val.lower())
+            
+            # Extract params for required entities
+            required = []
+            params = meta.get("params", [])
+            for p in params:
+                p_lower = p.lower()
+                if "@order" in p_lower and "order_no" not in required:
+                    required.append("order_no")
+                elif "@serial" in p_lower and "serial_no" not in required:
+                    required.append("serial_no")
+                elif "@line" in p_lower and "line_code" not in required:
+                    required.append("line_code")
+                elif "@shiftid" in p_lower and "shift_id" not in required:
+                    required.append("shift_id")
+                elif "@shiftdate" in p_lower and "shift_date" not in required:
+                    required.append("shift_date")
+                    
+            intent_key = intent_val.split(",")[0].strip() if intent_val else proc_name
+            if not intent_key:
+                intent_key = proc_name
+
+            intent_map[intent_key] = {
+                "procedure": proc_name,
+                "required_entities": required,
+                "keywords": list(set(keywords)),
+                "priority": 3
+            }
+        return intent_map
+
     def classify(self, message: str) -> IntentResult:
         """Main entry point — returns a fully populated IntentResult."""
         msg_lower = message.lower()
@@ -195,14 +166,17 @@ class IntentService:
         entities = self._extract_entities(message)
         logger.debug("Extracted entities: %s", entities)
 
+        # Build dynamic intent map
+        intent_map = self._get_dynamic_intent_map()
+
         # 2. Score all intents
-        scores = self._score_intents(msg_lower)
+        scores = self._score_intents(msg_lower, intent_map)
         if not scores:
             return self._general_fallback(entities)
 
         # 3. Pick highest scoring intent
         intent_name, score = scores[0]
-        intent_meta = INTENT_MAP[intent_name]
+        intent_meta = intent_map[intent_name]
 
         # 4. Check required entities
         missing = self._check_required(intent_meta, entities)
@@ -286,18 +260,18 @@ class IntentService:
     # Intent scoring
     # ------------------------------------------------------------------
 
-    def _score_intents(self, msg_lower: str) -> List[Tuple[str, float]]:
+    def _score_intents(self, msg_lower: str, intent_map: Dict[str, Dict]) -> List[Tuple[str, float]]:
         scores = []
         words = set(msg_lower.split())
 
-        for intent_name, meta in INTENT_MAP.items():
+        for intent_name, meta in intent_map.items():
             keyword_hits = sum(1 for kw in meta["keywords"] if kw in msg_lower)
             if keyword_hits == 0:
                 continue
 
             # Normalise: hits / total keywords, weighted by priority
-            raw = keyword_hits / len(meta["keywords"])
-            priority_boost = meta["priority"] * 0.05
+            raw = keyword_hits / len(meta["keywords"]) if meta["keywords"] else 0
+            priority_boost = meta.get("priority", 2) * 0.05
             score = min(raw + priority_boost, 1.0)
             scores.append((intent_name, score))
 
