@@ -77,10 +77,74 @@ class ManufacturingService:
 
         # -- SQL stored procedure --
         if intent.procedure:
-            sql_data = self._fetch_sql(intent)
-            if sql_data is not None:
-                context_parts.append(self._format_sql_context(intent, sql_data))
-                data_sources.append(f"SQL:{intent.procedure}")
+            is_prod_report = intent.procedure == "SP_MPAS_KPI_PROD_HOURLY_SUMMARY;1" or intent.intent == "hourly_production"
+            if is_prod_report:
+                procedures = [
+                    "SP_MPAS_KPI_PROD_HOURLY_SUMMARY;1",
+                    "SP_MPAS_REPORT_PPC_SUMMARY;1",
+                    "SP_MPAS_REPORT_QR_TOOL SUMMARY;1",
+                    "SP_MPAS_REPORT_OT_BYPASS;1",
+                    "SP_MPAS_REPORT_ALARM_HISTORY;1"
+                ]
+                
+                logger.info("Executing multi-procedure fetch for comprehensive report: %s", procedures)
+                from services.sql_service import PROCEDURE_REGISTRY
+                
+                primary_clarification = None
+                for proc in procedures:
+                    meta = PROCEDURE_REGISTRY.get(proc)
+                    if not meta:
+                        continue
+                    try:
+                        proc_params = meta.get("params", [])
+                        params = intent.sql_params_for_proc(proc_params)
+                        
+                        # Clean dates to YYYYMMDD format for SQL Server
+                        for k, v in params.items():
+                            if isinstance(v, str) and "-" in v and len(v) == 10:
+                                parts = v.split("-")
+                                if len(parts) == 3 and len(parts[0]) == 4:
+                                    params[k] = v.replace("-", "")
+                                    
+                        rows = self._sql.execute_procedure(proc, params)
+                        if rows:
+                            context_parts.append(self._format_sql_context(intent, rows, proc_name=proc))
+                            data_sources.append(f"SQL:{proc}")
+                    except Exception as exc:
+                        error_str = str(exc)
+                        if "which was not supplied" in error_str and proc == intent.procedure:
+                            import re
+                            missing_match = re.search(r"parameter '(@\w+)'", error_str)
+                            if missing_match:
+                                missing_param = missing_match.group(1)
+                                friendly = self._PARAM_FRIENDLY_NAMES.get(missing_param, missing_param.replace("@", "").lower())
+                                primary_clarification = (
+                                    f"I found the procedure for your query, but the database "
+                                    f"requires an additional filter: **{friendly}**.\n\n"
+                                    f"Could you please specify the {friendly}?"
+                                )
+                                break
+                        logger.warning("Optional multi-procedure %s execution failed: %s", proc, exc)
+                        
+                if primary_clarification:
+                    return {
+                        "intent": intent,
+                        "context": "",
+                        "clarification": primary_clarification,
+                        "data_sources": [],
+                    }
+            else:
+                sql_data, clarification = self._fetch_sql(intent)
+                if clarification:
+                    return {
+                        "intent": intent,
+                        "context": "",
+                        "clarification": clarification,
+                        "data_sources": [],
+                    }
+                if sql_data is not None:
+                    context_parts.append(self._format_sql_context(intent, sql_data))
+                    data_sources.append(f"SQL:{intent.procedure}")
 
         # -- OPC live cache --
         if intent.use_opc or intent.intent == "general":
@@ -96,6 +160,14 @@ class ManufacturingService:
                 context_parts.append(rag_data)
                 data_sources.append("RAG:ChromaDB")
 
+        # -- Master Tables Metadata/Reference Data --
+        master_context = ""
+        is_master_intent = intent.intent in ("Line_details", "plant_detials", "Stage_details", "general")
+        if not intent.procedure or is_master_intent:
+            master_context = self._get_master_reference_context(intent.entities)
+        if master_context:
+            context_parts.append(master_context)
+
         context = "\n\n---\n\n".join(context_parts) if context_parts else ""
 
         return {
@@ -105,39 +177,129 @@ class ManufacturingService:
             "data_sources": data_sources,
         }
 
+    def _get_master_reference_context(self, entities: Optional[Dict[str, Any]] = None) -> str:
+        """Fetch approved master tables data, filtered by current context if possible, to guide the AI's understanding."""
+        from services.sql_service import MASTER_TABLES_REGISTRY
+        if not MASTER_TABLES_REGISTRY:
+            return ""
+
+        entities = entities or {}
+        line_code = entities.get("line_code")
+        plant_code = entities.get("plant_code")
+
+        parts = ["[DATABASE MASTER DATA REFERENCE]"]
+        for name, meta in MASTER_TABLES_REGISTRY.items():
+            desc = meta.get("description", "")
+            static_data = meta.get("static_data", [])
+            if static_data:
+                parts.append(f"Table: {name} ({desc})\nData: {json.dumps(static_data, default=str)}")
+                continue
+
+            try:
+                rows = self._sql.execute_master_table_query(name)
+                if rows:
+                    filtered_rows = []
+                    for row in rows:
+                        row_line = str(row.get("LineCode") or row.get("LineName") or "").strip().lower()
+                        row_plant = str(row.get("PlantCode") or "").strip().lower()
+                        
+                        match_line = True
+                        if line_code:
+                            lc = str(line_code).strip().lower()
+                            match_line = (lc in row_line) or (row_line in lc) or (lc.lstrip('0') == row_line.lstrip('0'))
+                            
+                        match_plant = True
+                        if plant_code:
+                            pc = str(plant_code).strip().lower()
+                            match_plant = (pc == row_plant)
+                            
+                        if (line_code and match_line) or (plant_code and match_plant and not line_code):
+                            filtered_rows.append(row)
+                        elif not line_code and not plant_code:
+                            filtered_rows.append(row)
+                            
+                    if filtered_rows:
+                        sample = filtered_rows[:30]
+                    else:
+                        sample = rows[:30]
+                        
+                    parts.append(f"Table: {name} ({desc})\nData: {json.dumps(sample, default=str)}")
+            except Exception as e:
+                logger.warning("Could not query master table %s: %s", name, e)
+
+        return "\n\n".join(parts) if len(parts) > 1 else ""
+
     # ------------------------------------------------------------------
     # SQL fetcher
     # ------------------------------------------------------------------
 
-    def _fetch_sql(self, intent: IntentResult) -> Optional[List[Dict]]:
-        """Call the mapped stored procedure with extracted entities as params."""
-        try:
-            params = intent.sql_params()
+    _PARAM_FRIENDLY_NAMES = {
+        "@ShiftID": "shift (A or B)",
+        "@Shift": "shift (A or B)",
+        "@SectionCode": "section code (e.g. SB, LB)",
+        "@StageCode": "stage code",
+        "@StageNo": "stage number",
+        "@StageType": "stage type",
+        "@QRMandate": "QR mandate filter",
+        "@from": "start date (e.g. 22-Jun-2026)",
+        "@From": "start date (e.g. 22-Jun-2026)",
+        "@to": "end date (e.g. 22-Jun-2026)",
+        "@LineCode": "line code (e.g. 0803)",
+        "@LineName": "line name (e.g. 0803)",
+    }
 
-            # Always inject PlantCode where needed (never from user input)
-            # Some MPAS procedures filter by PlantCode internally — pass if needed
-            # params["@PlantCode"] = PLANT_CODE   # Uncomment if required by proc
+    def _fetch_sql(self, intent: IntentResult):
+        """Call the mapped stored procedure with extracted entities as params.
+        Returns (rows, None) on success, or (None, clarification_msg) on param error.
+        """
+        try:
+            from services.sql_service import PROCEDURE_REGISTRY
+            proc_meta = PROCEDURE_REGISTRY.get(intent.procedure, {})
+            proc_params = proc_meta.get("params", [])
+
+            params = intent.sql_params_for_proc(proc_params)
 
             rows = self._sql.execute_procedure(intent.procedure, params)
             logger.info(
                 "Procedure %s returned %d rows | params=%s",
                 intent.procedure, len(rows), params
             )
-            return rows
+            return rows, None
         except PermissionError as exc:
             logger.error("Permission denied: %s", exc)
-            return None
+            return None, None
         except Exception as exc:
+            error_str = str(exc)
+            # Detect SQL Server "parameter ... which was not supplied" errors
+            if "which was not supplied" in error_str:
+                import re
+                missing_match = re.search(r"parameter '(@\w+)'", error_str)
+                if missing_match:
+                    missing_param = missing_match.group(1)
+                    friendly = self._PARAM_FRIENDLY_NAMES.get(
+                        missing_param, missing_param.replace("@", "").lower()
+                    )
+                    msg = (
+                        f"I found the procedure for your query, but the database "
+                        f"requires an additional filter: **{friendly}**.\n\n"
+                        f"Could you please specify the {friendly}?"
+                    )
+                    logger.warning(
+                        "SQL missing param %s for %s — asking operator",
+                        missing_param, intent.procedure
+                    )
+                    return None, msg
             logger.error("SQL fetch error for %s: %s", intent.procedure, exc)
-            return None
+            return None, None
 
-    def _format_sql_context(self, intent: IntentResult, rows: List[Dict]) -> str:
+    def _format_sql_context(self, intent: IntentResult, rows: List[Dict], proc_name: Optional[str] = None) -> str:
         """Format SQL rows into a clean context block for Qwen3."""
+        proc = proc_name or intent.procedure
         if not rows:
-            return f"[{intent.procedure}] No records found for the given parameters."
+            return f"[{proc}] No records found for the given parameters."
 
         # Filter columns if columns_to_consider is configured
-        info = self._sql.procedure_info(intent.procedure)
+        info = self._sql.procedure_info(proc)
         if info:
             cols_str = info.get("columns_to_consider", "")
             if cols_str:
@@ -148,19 +310,120 @@ class ManufacturingService:
                         for r in rows
                     ]
 
-        # Highlight key fields based on intent category
-        header = f"[DATA SOURCE: {intent.procedure}] {len(rows)} record(s) retrieved\n"
-        header += f"Query parameters: {intent.sql_params()}\n\n"
+        header = f"[DATA SOURCE: {proc}] {len(rows)} record(s) retrieved\n"
+        
+        # Build query parameters display
+        proc_meta = self._sql.procedure_info(proc) or {}
+        params_meta = proc_meta.get("params", [])
+        params_bound = intent.sql_params_for_proc(params_meta)
+        header += f"Query parameters: {params_bound}\n\n"
 
-        # For large result sets, summarise rather than dump everything
-        if len(rows) > 20:
-            sample = rows[:20]
-            note = f"\n... and {len(rows) - 20} more records (showing first 20)"
+        # Pre-calculate high-level statistics for reporting to minimize context token limits
+        proc_lower = proc.lower()
+        if "ppc_summary" in proc_lower:
+            statuses = [r.get("OrderStatus") for r in rows if r.get("OrderStatus")]
+            from collections import Counter
+            counts = Counter(statuses)
+            header += "Pre-calculated Summary:\n"
+            header += f"- Total Production Orders: {len(rows)}\n"
+            for status, count in counts.items():
+                header += f"- OrderStatus '{status}' Count: {count}\n"
+            header += "\n"
+        elif "qr_tool summary" in proc_lower or "qr_tool_summary" in proc_lower:
+            qr_adherences = []
+            tool_adherences = []
+            for r in rows:
+                try:
+                    if r.get("QRAdherance") is not None:
+                        qr_adherences.append(float(r["QRAdherance"]))
+                    if r.get("ToolAdherance") is not None:
+                        tool_adherences.append(float(r["ToolAdherance"]))
+                except:
+                    pass
+            header += "Pre-calculated Summary:\n"
+            header += f"- Total Part Scan Records: {len(rows)}\n"
+            if qr_adherences:
+                header += f"- Average QR Adherence: {sum(qr_adherences)/len(qr_adherences):.2f}%\n"
+            if tool_adherences:
+                header += f"- Average Tool Adherence: {sum(tool_adherences)/len(tool_adherences):.2f}%\n"
+            header += "\n"
+        elif "ot_bypass" in proc_lower or "bypass" in proc_lower:
+            types = [r.get("ByPassType") for r in rows if r.get("ByPassType")]
+            methods = [r.get("ByPassMethod") for r in rows if r.get("ByPassMethod")]
+            from collections import Counter
+            type_counts = Counter(types)
+            method_counts = Counter(methods)
+            header += "Pre-calculated Summary:\n"
+            header += f"- Total Bypass Records: {len(rows)}\n"
+            for t, c in type_counts.items():
+                header += f"- ByPassType '{t}' Count: {c}\n"
+            for m, c in method_counts.items():
+                header += f"- ByPassMethod '{m}' Count: {c}\n"
+            header += "\n"
+        elif "alarm_history" in proc_lower or "alarm" in proc_lower:
+            durations = []
+            alarm_descs = []
+            for r in rows:
+                try:
+                    if r.get("Duration") is not None:
+                        durations.append(float(r["Duration"]))
+                    if r.get("AlarmDesc"):
+                        alarm_descs.append(r["AlarmDesc"])
+                except:
+                    pass
+            from collections import Counter
+            freq = Counter(alarm_descs).most_common(3)
+            
+            # Sum durations grouped by description
+            dur_by_alarm = {}
+            for r in rows:
+                desc = r.get("AlarmDesc")
+                dur = r.get("Duration")
+                if desc and dur is not None:
+                    try:
+                        dur_by_alarm[desc] = dur_by_alarm.get(desc, 0.0) + float(dur)
+                    except:
+                        pass
+            longest = sorted(dur_by_alarm.items(), key=lambda x: x[1], reverse=True)[:3]
+            
+            header += "Pre-calculated Summary:\n"
+            header += f"- Total Downtime Alarms: {len(rows)}\n"
+            header += f"- Cumulative Downtime Duration: {sum(durations):.0f} minutes\n"
+            header += "- Top 3 Most Frequent Alarms:\n"
+            for desc, cnt in freq:
+                header += f"  * {desc}: {cnt} times\n"
+            header += "- Top 3 Longest Stoppages:\n"
+            for desc, dur in longest:
+                header += f"  * {desc}: {dur:.0f} minutes\n"
+            header += "\n"
+
+        # Apply strict limits to sample size to keep local LLM context fast & fit in context window
+        # Sources with pre-calculated summaries need fewer samples (just for column reference)
+        limit = 5
+        if "hourly_summary" in proc_lower:
+            limit = 10  # tiny rows (3 cols), show full day pattern
+        elif "ppc_summary" in proc_lower or "qr_tool summary" in proc_lower:
+            limit = 5
+        elif "alarm_history" in proc_lower or "ot_bypass" in proc_lower:
+            limit = 3   # pre-calc summaries cover aggregate stats
+
+        if len(rows) > limit:
+            sample = rows[:limit]
+            note = f"\n... and {len(rows) - limit} more records (showing first {limit} samples)"
         else:
             sample = rows
             note = ""
 
-        body = json.dumps(sample, default=str, indent=2)
+        # Format sample rows as CSV to minimize LLM token footprint
+        if sample:
+            keys = list(sample[0].keys())
+            csv_lines = [",".join(keys)]
+            for r in sample:
+                csv_lines.append(",".join(str(r.get(k, "")) for k in keys))
+            body = "\n".join(csv_lines)
+        else:
+            body = "[]"
+            
         return header + body + note
 
     # ------------------------------------------------------------------

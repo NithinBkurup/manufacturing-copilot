@@ -1,10 +1,7 @@
 """
 SQL Service – Manufacturing Copilot
-Executes ONLY approved MPAS stored procedures via the saapi read-only account.
-No direct table access. No INSERT/UPDATE/DELETE. Ever.
-
-Approved procedures are the EXISTING MPAS procedures registered in the
-Knowledge Administration Module. No new procedures are created.
+Executes ONLY approved MPAS stored procedures.
+Supports executing across multiple enabled SQL connections and merging results.
 """
 
 import logging
@@ -15,21 +12,8 @@ from config.settings import settings
 
 logger = logging.getLogger("copilot.sql")
 
-
-# ---------------------------------------------------------------------------
-# Approved MPAS Stored Procedures Registry
-# ---------------------------------------------------------------------------
-# Key   : procedure name as it exists in MPAS_DB
-# Value : metadata for the intent engine to reference
-#
-# HOW TO ADD A NEW PROCEDURE:
-#   1. Confirm it exists in MPAS_DB and saapi has EXECUTE permission
-#   2. Add it here with description, params, and example_questions
-#   3. Register its parameter handler in manufacturing_service.py
-#   NO code change needed anywhere else.
-# ---------------------------------------------------------------------------
-
 PROCEDURE_REGISTRY: Dict[str, Dict[str, Any]] = {}
+MASTER_TABLES_REGISTRY: Dict[str, Dict[str, Any]] = {}
 
 
 def load_procedures_config():
@@ -49,8 +33,25 @@ def load_procedures_config():
     APPROVED_PROCEDURES = set(PROCEDURE_REGISTRY.keys())
 
 
+def load_master_tables_config():
+    global MASTER_TABLES_REGISTRY
+    import json
+    import os
+    config_path = "config/master_tables.json"
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, "r", encoding="utf-8") as f:
+                saved = json.load(f)
+                if isinstance(saved, dict):
+                    MASTER_TABLES_REGISTRY.clear()
+                    MASTER_TABLES_REGISTRY.update(saved)
+        except Exception:
+            pass
+
+
 load_procedures_config()
 APPROVED_PROCEDURES = set(PROCEDURE_REGISTRY.keys())
+load_master_tables_config()
 
 
 class SQLService:
@@ -58,10 +59,6 @@ class SQLService:
 
     def __init__(self):
         self._conn_str = settings.sql_connection_string
-
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
 
     def _get_connection(self) -> pyodbc.Connection:
         return pyodbc.connect(self._conn_str, autocommit=False)
@@ -74,55 +71,92 @@ class SQLService:
             )
 
     def _rows_to_dicts(self, cursor: pyodbc.Cursor) -> List[Dict[str, Any]]:
-        if cursor.description is None:
-            return []
+        # Consume intermediate result sets (e.g. from temp tables or SET NOCOUNT OFF/ON side effects)
+        while cursor.description is None:
+            if not cursor.nextset():
+                return []
         columns = [col[0] for col in cursor.description]
         return [dict(zip(columns, row)) for row in cursor.fetchall()]
-
-    # ------------------------------------------------------------------
-    # Public API — called only by manufacturing_service.py
-    # ------------------------------------------------------------------
 
     def execute_procedure(
         self,
         proc_name: str,
         params: Optional[Dict[str, Any]] = None,
     ) -> List[Dict[str, Any]]:
-        """
-        Execute an approved stored procedure and return rows as list of dicts.
-        Params dict keys must match @ParamName format (e.g. {"@OrderNo": "147190737"}).
-        """
         self._validate_proc(proc_name)
 
-        param_items = list((params or {}).items())
-        param_placeholders = ", ".join("?" * len(param_items))
+        # Ensure procedure name is wrapped in brackets for spaces/semi-colons
+        safe_proc_name = proc_name
+        if not safe_proc_name.startswith("["):
+            if ";1" in safe_proc_name:
+                base_name = safe_proc_name.split(";1")[0]
+                safe_proc_name = f"[{base_name}];1"
+            else:
+                safe_proc_name = f"[{safe_proc_name}]"
 
+        param_items = list((params or {}).items())
         if param_items:
-            sql = f"EXEC {proc_name} {', '.join(k + '=?' for k, _ in param_items)}"
+            sql = f"EXEC {safe_proc_name} {', '.join(k + '=?' for k, _ in param_items)}"
             param_values = [v for _, v in param_items]
         else:
-            sql = f"EXEC {proc_name}"
+            sql = f"EXEC {safe_proc_name}"
             param_values = []
 
         logger.info("SQL EXEC: %s | params=%s", proc_name, {k: v for k, v in param_items})
 
-        try:
-            with self._get_connection() as conn:
-                cursor = conn.cursor()
-                cursor.execute(sql, param_values)
-                rows = self._rows_to_dicts(cursor)
-                logger.info("SQL returned %d rows", len(rows))
-                return rows
-        except pyodbc.Error as exc:
-            logger.error("SQL error executing %s: %s", proc_name, exc)
-            raise
+        from services.connections_service import get_enabled_connections
+        enabled_conns = get_enabled_connections("sql")
+
+        # If no custom enabled connections, use settings default
+        if not enabled_conns:
+            try:
+                with pyodbc.connect(self._conn_str, autocommit=False) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(sql, param_values)
+                    rows = self._rows_to_dicts(cursor)
+                    logger.info("SQL default returned %d rows", len(rows))
+                    return rows
+            except pyodbc.Error as exc:
+                logger.error("SQL default error executing %s: %s", proc_name, exc)
+                raise
+
+        # Execute across all enabled connections and merge
+        all_rows = []
+        success_count = 0
+        last_exception = None
+
+        for db_conn in enabled_conns:
+            config = db_conn.get("config", {})
+            conn_str = (
+                f"DRIVER={{{config.get('driver', settings.SQL_DRIVER)}}};"
+                f"SERVER={config.get('server', settings.SQL_SERVER)};"
+                f"DATABASE={config.get('database', settings.SQL_DATABASE)};"
+                f"UID={config.get('username', settings.SQL_USERNAME)};"
+                f"PWD={config.get('password', '')};"
+                f"Connection Timeout={config.get('timeout', 30)};"
+            )
+            logger.info("SQL EXEC on custom database '%s' (%s)", db_conn.get("name"), config.get("database"))
+            try:
+                with pyodbc.connect(conn_str, autocommit=False) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(sql, param_values)
+                    rows = self._rows_to_dicts(cursor)
+                    logger.info("SQL custom db '%s' returned %d rows", db_conn.get("name"), len(rows))
+                    all_rows.extend(rows)
+                    success_count += 1
+            except pyodbc.Error as exc:
+                logger.warning("SQL execution failed on custom database '%s': %s", db_conn.get("name"), exc)
+                last_exception = exc
+
+        if success_count == 0 and last_exception:
+            raise last_exception
+
+        return all_rows
 
     def procedure_info(self, proc_name: str) -> Optional[Dict[str, Any]]:
-        """Return registry metadata for a procedure (used by intent engine)."""
         return PROCEDURE_REGISTRY.get(proc_name)
 
     def registry_summary(self) -> List[Dict[str, Any]]:
-        """Return all registered procedures — for the Knowledge Admin Module."""
         return [
             {
                 "procedure": name,
@@ -133,6 +167,26 @@ class SQLService:
                 "params": meta.get("params", []),
                 "optional_params": meta.get("optional_params", []),
                 "example_questions": meta.get("example_questions", []),
+                "keywords": meta.get("keywords", ""),
+                "column_details": meta.get("column_details", []),
             }
             for name, meta in PROCEDURE_REGISTRY.items()
         ]
+
+    def execute_master_table_query(self, table_name: str) -> List[Dict[str, Any]]:
+        """Safe select all rows from an approved master table to load reference data."""
+        import re
+        if not re.match(r"^[a-zA-Z0-9_.]+$", table_name):
+            raise ValueError("Invalid master table name format.")
+        
+        sql = f"SELECT * FROM {table_name}"
+        logger.info("SQL SELECT MASTER: %s", table_name)
+        
+        try:
+            with pyodbc.connect(self._conn_str, autocommit=False) as conn:
+                cursor = conn.cursor()
+                cursor.execute(sql)
+                return self._rows_to_dicts(cursor)
+        except Exception as exc:
+            logger.error("Error querying master table %s: %s", table_name, exc)
+            return []
