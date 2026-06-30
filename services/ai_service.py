@@ -284,6 +284,7 @@ class AIService:
             "messages": messages,
             "stream": False,
             "keep_alive": -1,
+            "think": False,
             "options": {
                 "temperature": settings.OLLAMA_TEMPERATURE,
                 "num_predict": settings.OLLAMA_MAX_TOKENS,
@@ -317,6 +318,7 @@ class AIService:
             "messages": messages,
             "stream": True,
             "keep_alive": -1,
+            "think": False,
             "options": {
                 "temperature": settings.OLLAMA_TEMPERATURE,
                 "num_predict": settings.OLLAMA_MAX_TOKENS,
